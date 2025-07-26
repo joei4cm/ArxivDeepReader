@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>解构革命: 'Attention Is All You Need' 可视化指南 (含MoE)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f8fafc;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .flow-arrow {
+            position: relative;
+            width: 100%;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .flow-arrow::after {
+            content: '▼';
+            font-size: 24px;
+            color: #0A9396;
+        }
+        .flow-arrow-right {
+            position: relative;
+            width: 30px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .flow-arrow-right::after {
+            content: '►';
+            font-size: 24px;
+            color: #0A9396;
+        }
+        .expert-inactive {
+            filter: grayscale(80%);
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-[#005F73] mb-2">解构革命</h1>
+            <p class="text-xl md:text-2xl text-[#0A9396]">为LLM新人准备的 "Attention Is All You Need" 可视化指南</p>
+        </header>
+
+        <main class="space-y-16">
+
+            <section id="intro" class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <h2 class="text-3xl font-bold text-[#005F73] mb-4 text-center">第一幕：Transformer之前的世界</h2>
+                <p class="text-lg text-gray-600 mb-6 text-center max-w-3xl mx-auto">在Transformer横空出世前，语言模型的世界由循环神经网络（RNN）主导。它们像一个逐字阅读的读者，但存在两个致命缺陷：容易“遗忘”长距离信息，且天生的“串行”处理机制严重拖慢了训练速度，成为了AI发展的瓶颈。</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-max text-left border-collapse">
+                        <thead>
+                            <tr>
+                                <th class="p-4 bg-[#94D2BD] text-white font-bold rounded-tl-lg">特性</th>
+                                <th class="p-4 bg-[#0A9396] text-white font-bold">循环神经网络 (RNN/LSTM)</th>
+                                <th class="p-4 bg-[#005F73] text-white font-bold rounded-tr-lg">Transformer</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-gray-200">
+                                <td class="p-4 font-semibold text-gray-700">核心机制</td>
+                                <td class="p-4">循环 (逐步处理) 🐌</td>
+                                <td class="p-4">注意力 (一次性建立关系) ⚡️</td>
+                            </tr>
+                            <tr class="border-b border-gray-200 bg-gray-50">
+                                <td class="p-4 font-semibold text-gray-700">序列处理</td>
+                                <td class="p-4">串行 (一次一个词元)</td>
+                                <td class="p-4">并行 (一次所有词元)</td>
+                            </tr>
+                            <tr class="border-b border-gray-200">
+                                <td class="p-4 font-semibold text-gray-700">长距离依赖</td>
+                                <td class="p-4">困难 (梯度消失)</td>
+                                <td class="p-4">容易 (直接连接)</td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="p-4 font-semibold text-gray-700 rounded-bl-lg">词序知识</td>
+                                <td class="p-4">架构固有</td>
+                                <td class="p-4 rounded-br-lg">通过位置编码显式添加</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="core-components" class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <h2 class="text-3xl font-bold text-[#005F73] mb-6 text-center">第二幕：深入引擎 - 核心组件剖析</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                    <div class="md:col-span-2 bg-[#E9D8A6] bg-opacity-20 rounded-lg p-6">
+                        <h3 class="text-2xl font-bold text-[#CA6702] mb-3 text-center">自注意力机制 (Self-Attention)</h3>
+                        <p class="text-gray-700 mb-6 text-center">这是Transformer的心脏。它允许每个词“审视”句子中的所有其他词，并动态计算出“注意力权重”，从而理解上下文。我们用一个“图书馆查询系统”的比喻来拆解这个过程。</p>
+                        <div class="flex flex-col items-center space-y-4">
+                            <div class="text-center p-4 bg-white rounded-lg shadow-md w-full max-w-md">
+                                <p class="font-bold text-[#005F73]">输入: "The animal didn't cross the street because <span class="text-[#EE9B00]">it</span> was too tired"</p>
+                            </div>
+                            <div class="flow-arrow"></div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-3xl">
+                                <div class="text-center p-3 bg-white rounded-lg shadow">
+                                    <h4 class="font-bold text-[#0A9396]">查询 (Query)</h4>
+                                    <p>来自"it": "我指代的是谁?"</p>
+                                </div>
+                                <div class="text-center p-3 bg-white rounded-lg shadow">
+                                    <h4 class="font-bold text-[#94D2BD]">键 (Key)</h4>
+                                    <p>来自"animal": "我是个物体"</p>
+                                    <p>来自"street": "我是个地点"</p>
+                                </div>
+                                <div class="text-center p-3 bg-white rounded-lg shadow">
+                                    <h4 class="font-bold text-[#EE9B00]">值 (Value)</h4>
+                                    <p>来自"animal": "动物的概念"</p>
+                                    <p>来自"street": "街道的概念"</p>
+                                </div>
+                            </div>
+                            <div class="flow-arrow"></div>
+                             <div class="text-center p-4 bg-white rounded-lg shadow-md w-full max-w-md">
+                                <p class="font-bold text-[#005F73]">1. 计算得分: Query · Key</p>
+                                <p class="text-sm">"it"的Query与所有词的Key点积，"animal"得分最高</p>
+                            </div>
+                            <div class="flow-arrow"></div>
+                             <div class="text-center p-4 bg-white rounded-lg shadow-md w-full max-w-md">
+                                <p class="font-bold text-[#005F73]">2. Softmax归一化: 得到注意力权重</p>
+                                <p class="text-sm">Attention("it", "animal") = 0.85</p>
+                                <p class="text-sm">Attention("it", "street") = 0.10</p>
+                            </div>
+                            <div class="flow-arrow"></div>
+                             <div class="text-center p-4 bg-green-100 rounded-lg shadow-md w-full max-w-md">
+                                <p class="font-bold text-green-800">3. 加权求和: 权重 × Value</p>
+                                <p class="text-sm">"it"的新表示 = 0.85 * V<sub>animal</sub> + 0.10 * V<sub>street</sub> + ...</p>
+                                <p class="font-semibold mt-2">结论: "it"的含义吸收了"animal"的信息</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-2xl font-bold text-[#0A9396] mb-3 text-center">多头注意力 (Multi-Head)</h3>
+                        <p class="text-gray-700 mb-4">单次注意力计算可能只关注一种关系。多头注意力机制就像一个“专家委员会”，并行地从不同角度（子空间）审视句子，捕捉语法、语义等多种关系，最后将所有“专家意见”整合，得到更丰富的理解。</p>
+                        <div class="flex flex-col items-center">
+                            <div class="p-3 bg-gray-100 rounded-lg w-full text-center mb-2">输入向量</div>
+                            <div class="flow-arrow" style="height:20px;"></div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 w-full mb-2">
+                                <div class="p-2 bg-[#94D2BD] bg-opacity-50 rounded text-center text-sm">头 1<br>(语法)</div>
+                                <div class="p-2 bg-[#E9D8A6] bg-opacity-50 rounded text-center text-sm">头 2<br>(语义)</div>
+                                <div class="p-2 bg-[#BB3E03] bg-opacity-30 rounded text-center text-sm">头 3<br>(指代)</div>
+                                <div class="p-2 bg-gray-200 rounded text-center text-sm">... 头 8</div>
+                            </div>
+                             <div class="flow-arrow" style="height:20px;"></div>
+                            <div class="p-3 bg-gray-100 rounded-lg w-full text-center font-semibold">拼接并线性投射</div>
+                             <div class="flow-arrow" style="height:20px;"></div>
+                            <div class="p-3 bg-[#005F73] text-white rounded-lg w-full text-center">最终输出向量</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                         <h3 class="text-2xl font-bold text-[#EE9B00] mb-3 text-center">位置编码 (Positional Encoding)</h3>
+                        <p class="text-gray-700 mb-4">注意力机制本身是无序的。为了让模型理解词语的顺序，我们在词嵌入向量中加入了“位置编码”。它使用不同频率的正弦和余弦函数为每个位置生成一个独特的信号，让模型能学习到相对位置关系。</p>
+                        <div class="chart-container h-64 md:h-auto">
+                            <canvas id="positionalEncodingChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="architecture" class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <h2 class="text-3xl font-bold text-[#005F73] mb-6 text-center">第三幕：完整蓝图与伟大分歧</h2>
+                <p class="text-lg text-gray-600 mb-8 text-center max-w-3xl mx-auto">原始Transformer为一个“编码器-解码器”架构，专为机器翻译设计。但其模块化的思想，催生了现代LLM的两大主流：专注理解的“编码器”模型（如BERT）和擅长生成的“解码器”模型（如GPT）。</p>
+                
+                <div class="flex flex-col lg:flex-row items-center justify-center gap-8">
+                    <div class="border-2 border-[#0A9396] rounded-lg p-4 w-full lg:w-1/3 text-center">
+                        <h4 class="text-xl font-bold text-[#0A9396]">编码器 (Encoder)</h4>
+                        <p class="text-sm mt-2">阅读并理解输入句子</p>
+                        <div class="mt-4 p-3 bg-gray-100 rounded">多头注意力 (双向)</div>
+                        <div class="text-2xl my-1">↓</div>
+                        <div class="p-3 bg-gray-100 rounded">前馈网络</div>
+                    </div>
+
+                    <div class="hidden lg:flex flow-arrow-right"></div>
+                    <div class="lg:hidden flow-arrow"></div>
+
+                    <div class="border-2 border-[#EE9B00] rounded-lg p-4 w-full lg:w-1/3 text-center">
+                        <h4 class="text-xl font-bold text-[#EE9B00]">解码器 (Decoder)</h4>
+                        <p class="text-sm mt-2">生成目标句子</p>
+                         <div class="mt-4 p-3 bg-gray-100 rounded">掩码多头注意力 (因果)</div>
+                        <div class="text-2xl my-1">↓</div>
+                        <div class="p-3 bg-gray-100 rounded">编码器-解码器注意力</div>
+                         <div class="text-2xl my-1">↓</div>
+                        <div class="p-3 bg-gray-100 rounded">前馈网络</div>
+                    </div>
+                </div>
+
+                <div class="flow-arrow mt-8"></div>
+
+                <div class="mt-8 flex flex-col md:flex-row gap-8 justify-center">
+                     <div class="flex-1 bg-[#0A9396] bg-opacity-10 rounded-lg p-6 text-center border-l-4 border-[#0A9396]">
+                        <h4 class="text-2xl font-bold text-[#005F73]">BERT家族 (仅编码器)</h4>
+                        <p class="mt-2 font-semibold">语言理解大师 🧐</p>
+                        <p class="mt-2 text-sm">通过<span class="font-bold">双向</span>注意力深刻理解上下文。</p>
+                        <p class="mt-3 text-xs font-mono bg-gray-200 p-2 rounded">应用: 文本分类, 情感分析, 问答</p>
+                    </div>
+                    <div class="flex-1 bg-[#EE9B00] bg-opacity-10 rounded-lg p-6 text-center border-l-4 border-[#EE9B00]">
+                        <h4 class="text-2xl font-bold text-[#CA6702]">GPT家族 (仅解码器)</h4>
+                        <p class="mt-2 font-semibold">高产作家 ✍️</p>
+                        <p class="mt-2 text-sm">通过<span class="font-bold">因果</span>注意力自回归地生成文本。</p>
+                        <p class="mt-3 text-xs font-mono bg-gray-200 p-2 rounded">应用: 聊天机器人, 创意写作, 摘要</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="moe-evolution" class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <h2 class="text-3xl font-bold text-[#005F73] mb-6 text-center">第四幕：效率革命 - 混合专家模型 (MoE)</h2>
+                <p class="text-lg text-gray-600 mb-8 text-center max-w-3xl mx-auto">Transformer架构开启了模型规模竞赛，但很快遇到了新瓶颈：参数越多，计算成本越高。MoE作为一种关键的效率优化技术应运而生，它没有取代注意力机制，而是巧妙地改造了Transformer中的“前馈网络”层。</p>
+
+                <div class="flex flex-col lg:flex-row gap-8 items-start">
+                    <!-- Dense Model -->
+                    <div class="flex-1 border-2 border-gray-300 rounded-lg p-4">
+                        <h4 class="text-xl font-bold text-gray-600 text-center mb-4">传统稠密模型 (Dense Model)</h4>
+                        <div class="p-3 bg-gray-100 rounded text-center font-semibold">输入Token</div>
+                        <div class="flow-arrow"></div>
+                        <div class="p-3 bg-[#0A9396] bg-opacity-20 rounded text-center">多头注意力层</div>
+                        <div class="flow-arrow"></div>
+                        <div class="p-6 bg-[#AE2012] bg-opacity-80 text-white rounded-lg text-center">
+                            <p class="font-bold">一个庞大的前馈网络 (FFN)</p>
+                            <p class="text-sm mt-1">(所有Token都必须经过这里)</p>
+                        </div>
+                        <div class="flow-arrow"></div>
+                        <div class="p-3 bg-gray-100 rounded text-center font-semibold">输出Token</div>
+                        <p class="text-center mt-4 text-sm text-gray-500">比喻：一座中央图书馆，要回答问题，必须把所有书都翻一遍。知识渊博但效率低下。</p>
+                    </div>
+
+                    <!-- MoE Model -->
+                    <div class="flex-1 border-2 border-[#005F73] rounded-lg p-4 bg-[#f0f9ff]">
+                        <h4 class="text-xl font-bold text-[#005F73] text-center mb-4">混合专家模型 (MoE)</h4>
+                        <div class="p-3 bg-gray-100 rounded text-center font-semibold">输入Token</div>
+                        <div class="flow-arrow"></div>
+                        <div class="p-3 bg-[#0A9396] bg-opacity-20 rounded text-center">多头注意力层 (不变)</div>
+                        <div class="flow-arrow"></div>
+                        <div class="p-4 bg-[#E9D8A6] bg-opacity-40 rounded-lg">
+                            <div class="p-2 bg-[#CA6702] text-white rounded text-center font-bold text-sm mb-3">路由器 (Router)</div>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                <div class="p-3 bg-[#94D2BD] rounded text-center text-sm">专家 1</div>
+                                <div class="p-3 bg-[#EE9B00] rounded text-center text-sm ring-4 ring-offset-2 ring-[#CA6702]">专家 2<br>(激活)</div>
+                                <div class="p-3 bg-[#94D2BD] rounded text-center text-sm expert-inactive">专家 3</div>
+                                <div class="p-3 bg-[#94D2BD] rounded text-center text-sm expert-inactive">专家 4</div>
+                                <div class="p-3 bg-[#EE9B00] rounded text-center text-sm ring-4 ring-offset-2 ring-[#CA6702]">专家 5<br>(激活)</div>
+                                <div class="p-3 bg-[#94D2BD] rounded text-center text-sm expert-inactive">专家 6</div>
+                                <div class="p-3 bg-[#94D2BD] rounded text-center text-sm expert-inactive">...</div>
+                                <div class="p-3 bg-[#94D2BD] rounded text-center text-sm expert-inactive">专家 N</div>
+                            </div>
+                        </div>
+                        <div class="flow-arrow"></div>
+                        <div class="p-3 bg-gray-100 rounded text-center font-semibold">输出Token</div>
+                        <p class="text-center mt-4 text-sm text-gray-500">比喻：一个拥有多个专业分馆的图书馆系统。智能接待员（路由器）会指引你只去最相关的几个分馆查阅。知识总量更大，但查询效率极高。</p>
+                    </div>
+                </div>
+                <p class="text-center mt-8 text-lg text-gray-700">MoE的核心思想是**条件计算**：总参数量可以非常巨大，但每个Token只激活一小部分“专家”进行计算。这使得模型能够在不显著增加计算成本的情况下，大幅扩展其知识容量。</p>
+            </section>
+
+            <section id="conclusion" class="text-center">
+                 <h2 class="text-3xl font-bold text-[#005F73] mb-4">结论：为何注意力(依然)是你所需的一切</h2>
+                 <p class="text-lg text-gray-700 max-w-4xl mx-auto">
+                    Transformer通过用<span class="font-bold text-[#0A9396]">并行化</span>的注意力机制取代<span class="font-bold text-[#AE2012]">串行</span>的循环结构，不仅解决了长距离依赖问题，更关键的是释放了现代硬件的计算潜力。这一范式转移直接开启了大语言模型时代。
+                    <br><br>
+                    后续如<span class="font-bold text-[#CA6702]">混合专家模型 (MoE)</span> 等创新，并未取代注意力机制，而是对其进行了聪明的“效率增强”。通过将计算密集的前馈网络层替换为可动态选择的“专家”组，MoE让模型在拥有海量知识的同时，保持了高效的计算性能。这证明了原始Transformer架构的强大与灵活，其核心思想至今仍是AI发展的基石。
+                 </p>
+            </section>
+        </main>
+
+        <footer class="text-center mt-12 pt-8 border-t border-gray-200">
+            <p class="text-sm text-gray-500">基于 Vaswani et al. (2017) "Attention Is All You Need" 论文的可视化解读，并融入了后续架构演进。</p>
+        </footer>
+    </div>
+
+    <script>
+        function wrapLabels(label, maxWidth) {
+            const words = label.split(' ');
+            const lines = [];
+            let currentLine = '';
+            for (const word of words) {
+                if ((currentLine + word).length > maxWidth) {
+                    lines.push(currentLine.trim());
+                    currentLine = '';
+                }
+                currentLine += word + ' ';
+            }
+            lines.push(currentLine.trim());
+            return lines;
+        }
+
+        const tooltipTitleCallback = (tooltipItems) => {
+            const item = tooltipItems[0];
+            let label = item.chart.data.labels[item.dataIndex];
+            if (Array.isArray(label)) {
+                return label.join(' ');
+            }
+            return label;
+        };
+        
+        const commonChartOptions = {
+            maintainAspectRatio: false,
+            responsive: true,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#374151'
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        title: tooltipTitleCallback
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#4b5563' },
+                    grid: { color: '#e5e7eb' }
+                },
+                y: {
+                    ticks: { color: '#4b5563' },
+                    grid: { color: '#e5e7eb' }
+                }
+            }
+        };
+
+        const posCtx = document.getElementById('positionalEncodingChart').getContext('2d');
+        const positions = Array.from({ length: 50 }, (_, i) => i);
+        const dim = 128;
+        const posEncodingData = {
+            labels: positions,
+            datasets: [
+                {
+                    label: '维度 4 (sin)',
+                    data: positions.map(pos => Math.sin(pos / Math.pow(10000, (2 * 4) / dim))),
+                    borderColor: '#0A9396',
+                    backgroundColor: 'rgba(10, 147, 150, 0.2)',
+                    fill: false,
+                    tension: 0.4,
+                    pointRadius: 0,
+                },
+                {
+                    label: '维度 5 (cos)',
+                    data: positions.map(pos => Math.cos(pos / Math.pow(10000, (2 * 4) / dim))),
+                    borderColor: '#EE9B00',
+                    backgroundColor: 'rgba(238, 155, 0, 0.2)',
+                    fill: false,
+                    tension: 0.4,
+                    pointRadius: 0,
+                },
+                 {
+                    label: '维度 20 (sin)',
+                    data: positions.map(pos => Math.sin(pos / Math.pow(10000, (2 * 20) / dim))),
+                    borderColor: '#9B2226',
+                    backgroundColor: 'rgba(155, 34, 38, 0.2)',
+                    fill: false,
+                    tension: 0.4,
+                    pointRadius: 0,
+                },
+            ]
+        };
+        new Chart(posCtx, {
+            type: 'line',
+            data: posEncodingData,
+            options: {
+                ...commonChartOptions,
+                plugins: {
+                    ...commonChartOptions.plugins,
+                    title: {
+                        display: true,
+                        text: '不同维度的正弦/余弦波形',
+                        color: '#005F73',
+                        font: { size: 16 }
+                    }
+                },
+                scales: {
+                    y: {
+                        min: -1.5,
+                        max: 1.5,
+                        ticks: { color: '#4b5563' },
+                        grid: { color: '#e5e7eb' }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: '词元位置 (Position)',
+                            color: '#4b5563'
+                        },
+                        ticks: { color: '#4b5563' },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

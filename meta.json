@@ -66,18 +66,18 @@
       "title": "信息图：揭示LLM的多令牌预测潜力",
       "description": "深入探讨 arXiv:2507.11851 论文，揭示大型语言模型（LLM）如何通过一次预测多个令牌来彻底改变推理速度。",
       "category": "推理加速",
-      "categoryColor": "blue",
+      "categoryColor": "emerald",
       "tags": [
         "并行计算",
         "推测解码",
         "效率优化"
       ],
       "tagColors": [
-        "purple",
-        "green",
-        "orange"
+        "blue",
+        "red",
+        "yellow"
       ],
-      "gradient": "from-blue-600 to-purple-600",
+      "gradient": "from-emerald-600 to-teal-600",
       "folder": "2507.11851v1",
       "files": [
         {
@@ -104,8 +104,8 @@
       ]
     },
     "2405.16444": {
-      "title": "CacheBlend：终结RAG延迟 - A Visual Deep Dive into High-Performance RAG",
-      "description": "A visual deep dive into the technology that makes Retrieval-Augmented Generation fast, efficient, and commercially viable.",
+      "title": "CacheBlend: 高性能RAG技术深度解析",
+      "description": "深入探讨让检索增强生成（RAG）变得快速、高效且商业化可行的核心技术。",
       "category": "KV缓存优化",
       "categoryColor": "blue",
       "tags": [
@@ -122,18 +122,18 @@
       "folder": "2405.16444v3",
       "files": [
         {
-          "name": "2405.1644v3_en.html",
+          "name": "2405.1644v3_cn.html",
           "type": "analysis",
           "priority": 1,
           "icon": "📖",
           "label": "深度解析"
         },
         {
-          "name": "2405.1644v3_cn.html",
+          "name": "2405.1644v3_en.html",
           "type": "analysis",
           "priority": 1,
           "icon": "📖",
-          "label": "深度解析"
+          "label": "深度解析(EN)"
         },
         {
           "name": "2405.16444v3.pdf",
@@ -150,12 +150,53 @@
           "label": "PDF文档"
         }
       ]
+    },
+    "1706.03762": {
+      "title": "解构革命: 'Attention Is All You Need' 可视化指南",
+      "description": "在Transformer横空出世前，语言模型的世界由循环神经网络（RNN）主导。它们像一个逐字阅读的读者，但存在两个致命缺陷：容易“遗忘”长距离信息，且天生的“串行”处理机制严重拖慢了训练速度，成为了AI发展的瓶颈。",
+      "category": "KV缓存优化",
+      "categoryColor": "blue",
+      "tags": [
+        "架构创新",
+        "内存优化",
+        "性能提升"
+      ],
+      "tagColors": [
+        "purple",
+        "green",
+        "orange"
+      ],
+      "gradient": "from-blue-600 to-purple-600",
+      "folder": "1706.03762v7",
+      "files": [
+        {
+          "name": "1706.03762v7.html",
+          "type": "analysis",
+          "priority": 1,
+          "icon": "📖",
+          "label": "深度解析"
+        },
+        {
+          "name": "Transformer论文分析与LLM入门指南_.pdf",
+          "type": "analysis_pdf",
+          "priority": 2,
+          "icon": "📊",
+          "label": "分析报告"
+        },
+        {
+          "name": "1706.03762v7.pdf",
+          "type": "document",
+          "priority": 3,
+          "icon": "📄",
+          "label": "PDF文档"
+        }
+      ]
     }
   },
   "statistics": {
-    "totalPapers": 3,
-    "totalDocuments": 13
+    "totalPapers": 4,
+    "totalDocuments": 16
   },
-  "lastUpdated": "2025-07-27T00:06:49.101945Z",
+  "lastUpdated": "2025-07-27T00:40:37.453784Z",
   "version": "1.0.0"
 }
