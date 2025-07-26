@@ -1,0 +1,161 @@
+{
+  "papers": {
+    "2412.19255": {
+      "title": "解锁LLM效率：KV缓存优化技术深度解析 - Multi-matrix Factorization Attention: Breaking the KV Cache Bottleneck in LLMs",
+      "description": "大型语言模型（LLM）的推理性能长期受限于一个核心瓶颈：键值（KV）缓存。本报告将深入探讨以多矩阵分解注意力（MFA）为代表的架构创新，如何从根本上解决这一挑战，推动AI进入一个更高效、更普及的新时代。",
+      "category": "KV缓存优化",
+      "categoryColor": "blue",
+      "tags": [
+        "架构创新",
+        "内存优化",
+        "性能提升"
+      ],
+      "tagColors": [
+        "purple",
+        "green",
+        "orange"
+      ],
+      "gradient": "from-blue-600 to-purple-600",
+      "folder": "2412.19255v2",
+      "files": [
+        {
+          "name": "2412.19255v2.html",
+          "type": "analysis",
+          "priority": 1,
+          "icon": "📖",
+          "label": "深度解析"
+        },
+        {
+          "name": "2412.19255v2.pdf",
+          "type": "original",
+          "priority": 2,
+          "icon": "📄",
+          "label": "原文PDF"
+        },
+        {
+          "name": "LLM 缓存优化研究报告_.pdf",
+          "type": "report",
+          "priority": 2,
+          "icon": "📊",
+          "label": "研究报告"
+        },
+        {
+          "name": "Step3-Application\\Step3-Model-Analysis.html",
+          "type": "model_analysis",
+          "priority": 2,
+          "icon": "🧠",
+          "label": "模型分析"
+        },
+        {
+          "name": "Step3-Application\\Step3-Sys-Model.pdf",
+          "type": "sys_model",
+          "priority": 3,
+          "icon": "⚙️",
+          "label": "系统模型"
+        },
+        {
+          "name": "Step3-Application\\Step3-MFA_MFA-KR解析.pdf",
+          "type": "mfa_analysis",
+          "priority": 3,
+          "icon": "🔍",
+          "label": "MFA-KR解析"
+        }
+      ]
+    },
+    "2507.11851": {
+      "title": "信息图：揭示LLM的多令牌预测潜力",
+      "description": "深入探讨 arXiv:2507.11851 论文，揭示大型语言模型（LLM）如何通过一次预测多个令牌来彻底改变推理速度。",
+      "category": "推理加速",
+      "categoryColor": "blue",
+      "tags": [
+        "并行计算",
+        "推测解码",
+        "效率优化"
+      ],
+      "tagColors": [
+        "purple",
+        "green",
+        "orange"
+      ],
+      "gradient": "from-blue-600 to-purple-600",
+      "folder": "2507.11851v1",
+      "files": [
+        {
+          "name": "2507.11851v1.html",
+          "type": "analysis",
+          "priority": 1,
+          "icon": "📖",
+          "label": "深度解析"
+        },
+        {
+          "name": "2507.11851v1.pdf",
+          "type": "original",
+          "priority": 2,
+          "icon": "📄",
+          "label": "原文PDF"
+        },
+        {
+          "name": "论文分析：原理、创新与应用_.pdf",
+          "type": "analysis_pdf",
+          "priority": 2,
+          "icon": "📊",
+          "label": "分析报告"
+        }
+      ]
+    },
+    "2405.16444": {
+      "title": "CacheBlend：终结RAG延迟 - A Visual Deep Dive into High-Performance RAG",
+      "description": "A visual deep dive into the technology that makes Retrieval-Augmented Generation fast, efficient, and commercially viable.",
+      "category": "KV缓存优化",
+      "categoryColor": "blue",
+      "tags": [
+        "架构创新",
+        "内存优化",
+        "性能提升"
+      ],
+      "tagColors": [
+        "purple",
+        "green",
+        "orange"
+      ],
+      "gradient": "from-blue-600 to-purple-600",
+      "folder": "2405.16444v3",
+      "files": [
+        {
+          "name": "2405.1644v3_en.html",
+          "type": "analysis",
+          "priority": 1,
+          "icon": "📖",
+          "label": "深度解析"
+        },
+        {
+          "name": "2405.1644v3_cn.html",
+          "type": "analysis",
+          "priority": 1,
+          "icon": "📖",
+          "label": "深度解析"
+        },
+        {
+          "name": "2405.16444v3.pdf",
+          "type": "original",
+          "priority": 2,
+          "icon": "📄",
+          "label": "原文PDF"
+        },
+        {
+          "name": "深度解读CacheBlend：破解RAG推理瓶颈的缓存新策略.pdf",
+          "type": "document",
+          "priority": 3,
+          "icon": "📄",
+          "label": "PDF文档"
+        }
+      ]
+    }
+  },
+  "statistics": {
+    "totalPapers": 3,
+    "totalDocuments": 13
+  },
+  "lastUpdated": "2025-07-27T00:06:49.101945Z",
+  "version": "1.0.0"
+}

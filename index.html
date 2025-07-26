@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArXiv Deep Reader - AI论文深度解析平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+SC:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .paper-card {
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid #e2e8f0;
+        }
+        .download-btn {
+            transition: all 0.2s ease;
+        }
+        .download-btn:hover {
+            transform: scale(1.05);
+        }
+        .tech-badge {
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+        }
+        .stats-number {
+            background: linear-gradient(90deg, #06b6d4, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+    <!-- Header -->
+    <header class="gradient-bg text-white">
+        <div class="container mx-auto px-6 py-16">
+            <div class="text-center">
+                <h1 class="text-5xl md:text-7xl font-black mb-6 leading-tight">
+                    ArXiv Deep Reader
+                </h1>
+                <p class="text-xl md:text-2xl font-light mb-8 max-w-3xl mx-auto opacity-90">
+                    深度解析前沿AI论文，探索大型语言模型的技术革新与突破
+                </p>
+                <div class="flex flex-wrap justify-center gap-4 text-sm font-medium">
+                    <span class="tech-badge px-4 py-2 rounded-full text-white">
+                        🚀 LLM优化技术
+                    </span>
+                    <span class="tech-badge px-4 py-2 rounded-full text-white">
+                        ⚡ 推理加速
+                    </span>
+                    <span class="tech-badge px-4 py-2 rounded-full text-white">
+                        🧠 架构创新
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Stats Section -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                <div class="p-6">
+                    <div id="papers-count" class="text-5xl font-black stats-number mb-2">0</div>
+                    <p class="text-gray-600 font-medium">精选论文</p>
+                </div>
+                <div class="p-6">
+                    <div id="documents-count" class="text-5xl font-black stats-number mb-2">0</div>
+                    <p class="text-gray-600 font-medium">技术文档</p>
+                </div>
+                <div class="p-6">
+                    <div class="text-5xl font-black stats-number mb-2">100%</div>
+                    <p class="text-gray-600 font-medium">深度解析</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Papers Section -->
+    <section class="py-20 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
+                    精选论文解析
+                </h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                    深入探索最新的AI研究成果，从技术原理到实际应用的全方位解读
+                </p>
+            </div>
+
+            <!-- Loading indicator -->
+            <div id="loading" class="text-center py-12">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <p class="mt-4 text-gray-600">正在扫描论文目录...</p>
+            </div>
+
+            <!-- Dynamic papers container -->
+            <div id="papers-container" class="grid grid-cols-1 lg:grid-cols-2 gap-12 hidden">
+                <!-- Papers will be dynamically generated here -->
+            </div>
+
+            <!-- No papers found message -->
+            <div id="no-papers" class="text-center py-12 hidden">
+                <div class="text-6xl mb-4">📚</div>
+                <h3 class="text-2xl font-bold mb-4 text-gray-900">暂无论文</h3>
+                <p class="text-gray-600">请在 AI 目录下添加论文文件夹</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-6 text-gray-900">
+                    为什么选择 ArXiv Deep Reader？
+                </h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                    我们不仅提供论文，更提供深度理解和实用洞察
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="text-center p-8">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <span class="text-2xl">🔍</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">深度解析</h3>
+                    <p class="text-gray-600">
+                        不仅翻译论文，更深入解读技术原理、创新点和实际应用价值
+                    </p>
+                </div>
+                
+                <div class="text-center p-8">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <span class="text-2xl">📊</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">可视化呈现</h3>
+                    <p class="text-gray-600">
+                        通过图表、流程图和交互式元素，让复杂的技术概念变得易懂
+                    </p>
+                </div>
+                
+                <div class="text-center p-8">
+                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <span class="text-2xl">⚡</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">快速获取</h3>
+                    <p class="text-gray-600">
+                        一站式获取原文、解析报告和技术文档，节省您的宝贵时间
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-6">
+            <div class="text-center">
+                <h3 class="text-2xl font-bold mb-4">ArXiv Deep Reader</h3>
+                <p class="text-gray-400 mb-6">
+                    持续关注AI前沿技术，为研究者和开发者提供最有价值的论文解析
+                </p>
+                <div class="flex justify-center space-x-6 text-sm text-gray-400">
+                    <span>© 2024 ArXiv Deep Reader</span>
+                    <span>•</span>
+                    <span>深度解析 • 技术前沿 • 实用价值</span>
+                    <span>•</span>
+                    <a href="https://soarxiv.org/" target="_blank" class="hover:text-white transition-colors">soarXiv.org</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Global variables for metadata
+        let paperMetadata = {};
+        let statisticsData = { totalPapers: 0, totalDocuments: 0 };
+
+        // Load metadata from meta.json
+        async function loadMetadata() {
+            try {
+                const response = await fetch('./meta.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                paperMetadata = data.papers || {};
+                statisticsData = data.statistics || { totalPapers: 0, totalDocuments: 0 };
+                
+                // Update statistics display
+                updateStatistics();
+                
+                // Generate paper cards
+                generatePaperCards();
+                
+                console.log('Metadata loaded successfully:', data);
+                return true;
+            } catch (error) {
+                console.error('Failed to load metadata:', error);
+                // Show error message
+                const papersContainer = document.getElementById('papers-container');
+                const loadingIndicator = document.getElementById('loading');
+                const noPapersMessage = document.getElementById('no-papers');
+                
+                if (loadingIndicator) loadingIndicator.classList.add('hidden');
+                if (noPapersMessage) noPapersMessage.classList.remove('hidden');
+                if (papersContainer) papersContainer.innerHTML = '<div class="text-center text-red-600">加载论文数据失败，请检查meta.json文件</div>';
+                
+                return false;
+            }
+        }
+        
+        // Update statistics in the UI
+        function updateStatistics() {
+            const papersCountEl = document.getElementById('papers-count');
+            const documentsCountEl = document.getElementById('documents-count');
+            
+            if (papersCountEl) papersCountEl.textContent = statisticsData.totalPapers;
+            if (documentsCountEl) documentsCountEl.textContent = statisticsData.totalDocuments;
+        }
+
+        // Generate paper cards from metadata
+        function generatePaperCards() {
+            const papersContainer = document.getElementById('papers-container');
+            const loadingIndicator = document.getElementById('loading');
+            const noPapersMessage = document.getElementById('no-papers');
+            
+            if (!papersContainer) return;
+            
+            // Hide loading indicator
+            if (loadingIndicator) loadingIndicator.classList.add('hidden');
+            
+            const paperIds = Object.keys(paperMetadata);
+            
+            if (paperIds.length === 0) {
+                if (noPapersMessage) noPapersMessage.classList.remove('hidden');
+                return;
+            }
+            
+            // Hide no papers message
+            if (noPapersMessage) noPapersMessage.classList.add('hidden');
+            
+            // Generate cards
+            papersContainer.innerHTML = paperIds.map(paperId => createPaperCard(paperId, paperMetadata[paperId])).join('');
+            papersContainer.classList.remove('hidden');
+        }
+
+        // Create paper card HTML from metadata
+        function createPaperCard(paperId, data) {
+            if (!data) return '';
+            
+            // Create tags HTML
+            const tagsHtml = data.tags.map((tag, index) => {
+                const color = data.tagColors && data.tagColors[index] ? data.tagColors[index] : 'gray';
+                return `<span class="bg-${color}-100 text-${color}-800 px-3 py-1 rounded-full text-xs font-medium">${tag}</span>`;
+            }).join('\n                        ');
+            
+            // Create files HTML from metadata (exclude analysis file since it's covered by main button)
+            const filesHtml = data.files ? data.files.filter(file => file.label !== '深度解析').map(file => {
+                // Convert Windows path separators to forward slashes for web URLs
+                const webPath = file.name.replace(/\\/g, '/');
+                return `
+                    <a href="AI/${data.folder}/${webPath}" 
+                       class="inline-block download-btn bg-gray-50 hover:bg-gray-100 text-gray-600 text-center px-3 py-1.5 rounded-md text-xs font-medium mr-2 mb-2 transition-colors">
+                        ${file.icon} ${file.label}
+                    </a>`;
+            }).join('') : '';
+            
+            // Find main analysis file
+            const analysisFile = data.files ? data.files.find(f => f.label === '深度解析') : null;
+            
+            return `
+                <div class="paper-card rounded-2xl p-8 card-hover">
+                    <div class="flex items-start justify-between mb-6">
+                        <div class="bg-${data.categoryColor}-100 text-${data.categoryColor}-800 px-3 py-1 rounded-full text-sm font-semibold">
+                            ${data.category}
+                        </div>
+                        <div class="text-gray-400 text-sm">
+                            ${paperId}
+                        </div>
+                    </div>
+                    
+                    <h3 class="text-2xl font-bold mb-4 text-gray-900">
+                        ${data.title}
+                    </h3>
+                    
+                    <p class="text-gray-600 mb-6 leading-relaxed">
+                        ${data.description}
+                    </p>
+                    
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        ${tagsHtml}
+                    </div>
+                    
+                    <div class="space-y-3">
+                        ${analysisFile ? `
+                        <a href="AI/${data.folder}/${analysisFile.name.replace(/\\/g, '/')}" 
+                           class="block w-full bg-gradient-to-r ${data.gradient} text-white text-center py-3 rounded-lg font-semibold hover:opacity-90 transition-all duration-200">
+                            📖 阅读深度解析
+                        </a>` : ''}
+                        
+                        ${filesHtml ? `<div class="flex flex-wrap">${filesHtml}</div>` : ''}
+                    </div>
+                </div>`;
+        }
+
+
+
+
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load metadata and papers
+            loadMetadata();
+
+            // Add smooth scrolling for better UX
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
+        });
+
+        // Add loading animation for download links (delegated event handling)
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('download-btn')) {
+                const originalText = e.target.textContent;
+                e.target.textContent = '⏳ 下载中...';
+                setTimeout(() => {
+                    e.target.textContent = originalText;
+                }, 2000);
+            }
+        });
+    </script>
+</body>
+</html>

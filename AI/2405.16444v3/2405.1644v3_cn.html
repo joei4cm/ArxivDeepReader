@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CacheBlend：深入了解高性能RAG的视觉指南</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- 
+    Infographic Plan:
+    1.  Narrative Structure:
+        -   Section 1: The RAG Bottleneck (Problem Introduction).
+        -   Section 2: The Impossible Trade-off (Existing Flawed Solutions).
+        -   Section 3: Introducing CacheBlend (The Solution).
+        -   Section 4: How It Works (Technical Deep Dive: Selective Recompute & Pipelining).
+        -   Section 5: The Performance Payoff (Quantitative Results).
+        -   Section 6: The Economic Impact (Business Value).
+        -   Section 7: Conclusion & Adoption (Future & Call to Action).
+
+    2.  Color Palette Selection:
+        -   Name: Brilliant Blues
+        -   Usage: A professional, tech-oriented theme.
+        -   HEX Codes:
+            -   Background: #F0F7FF (Light Sky Blue)
+            -   Dark Text/Primary: #0A2463 (Deep Navy)
+            -   Headings/Accent: #3E92CC (Bright Cerulean)
+            -   Chart Palette: [#1B4965, #5FA8D3, #62B6CB, #CAE9FF]
+
+    3.  Visualization Choices (NO SVG, NO MERMAID JS):
+        -   RAG Process Flow: Goal=Organize, Method=HTML/CSS Diagram.
+        -   Solution Comparison: Goal=Compare, Method=Chart.js Grouped Bar Chart.
+        -   Architecture Comparison: Goal=Organize/Compare, Method=HTML/CSS Diagram.
+        -   Gradual Filtering Diagram: Goal=Organize, Method=HTML/CSS Diagram.
+        -   Pipelining Timeline: Goal=Organize, Method=HTML/CSS Timeline Diagram.
+        -   Performance Gains (Throughput by Model): Goal=Compare, Method=Chart.js Grouped Bar Chart.
+        -   Economic Impact: Goal=Inform, Method=Styled Stat Cards.
+
+    4.  Confirmation of Constraints:
+        -   NEITHER Mermaid JS NOR SVG were used anywhere in this output. All diagrams are custom HTML/CSS. All charts use the HTML5 Canvas via Chart.js.
+    -->
+    <style>
+        body {
+            font-family: 'Noto Sans SC', 'Inter', sans-serif;
+            background-color: #F0F7FF;
+            color: #0A2463;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 450px;
+        }
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .stat-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            border-left: 8px solid #3E92CC;
+        }
+        .stat-number {
+            font-size: 4rem;
+            font-weight: 900;
+            color: #1B4965;
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: 1.125rem;
+            color: #3E92CC;
+            margin-top: 0.5rem;
+        }
+        h1, h2, h3 {
+            font-weight: 700;
+        }
+        h1 {
+            color: #0A2463;
+            font-weight: 900;
+        }
+        h2 {
+            color: #1B4965;
+        }
+        .flow-arrow {
+            font-size: 2rem;
+            color: #3E92CC;
+            line-height: 1;
+            margin: 0 0.5rem;
+        }
+        .arch-card {
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #CAE9FF;
+            height: 100%;
+        }
+        .arch-title {
+            font-weight: 600;
+            color: #0A2463;
+        }
+        .arch-chunk {
+            border: 2px solid #5FA8D3;
+            background-color: #E0F2FE;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+        .arch-kv {
+            border: 2px dashed #1B4965;
+            background-color: #F0F7FF;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            margin-top: 0.5rem;
+            position: relative;
+        }
+        .arch-recompute {
+            background-color: #62B6CB;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.25rem;
+        }
+        .arch-cross-attention-fail {
+            position: absolute;
+            top: 50%;
+            left: -10px;
+            transform: translateY(-50%);
+            color: #EF4444;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white py-8 px-4 text-center shadow-md">
+        <h1 class="text-4xl md:text-5xl font-black mb-2">CacheBlend：终结RAG延迟</h1>
+        <p class="text-lg md:text-xl max-w-3xl mx-auto text-gray-600">深入了解这项使检索增强生成（RAG）变得快速、高效且商业上可行的技术。</p>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+
+        <!-- 第1节：瓶颈 -->
+        <section class="my-12">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">RAG性能问题：为什么你的AI感觉很慢</h2>
+                <p class="max-w-4xl mx-auto text-lg text-gray-700">检索增强生成（RAG）通过向AI提供相关文档来创建强大、知识渊博的AI。但这会产生巨大的输入，在“预填充”阶段造成主要瓶颈。这种延迟，即“首个令牌生成时间”（TTFT），是AI在开始写作之前就感觉迟钝的原因。</p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6 md:p-8">
+                <h3 class="text-2xl font-bold text-center mb-6">RAG推理流程与预填充瓶颈</h3>
+                <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 flex-wrap">
+                    <div class="text-center"><div class="p-4 bg-blue-100 border-2 border-blue-300 rounded-lg shadow">查询</div></div>
+                    <div class="flow-arrow transform md:rotate-0 rotate-90">&rarr;</div>
+                    <div class="text-center"><div class="p-4 bg-blue-100 border-2 border-blue-300 rounded-lg shadow">检索文档</div></div>
+                    <div class="flow-arrow transform md:rotate-0 rotate-90">&rarr;</div>
+                    <div class="text-center">
+                        <div class="p-4 bg-red-100 border-4 border-red-500 rounded-lg shadow-xl relative">
+                            <span class="absolute -top-3 -right-3 px-2 py-1 text-xs font-bold text-white bg-red-600 rounded-full">瓶颈</span>
+                            LLM预填充阶段
+                        </div>
+                        <p class="text-sm text-red-700 mt-2 font-semibold">高TTFT</p>
+                    </div>
+                    <div class="flow-arrow transform md:rotate-0 rotate-90">&rarr;</div>
+                    <div class="text-center">
+                        <div class="p-4 bg-green-100 border-2 border-green-300 rounded-lg shadow">快速解码</div>
+                        <p class="text-sm text-green-700 mt-2 font-semibold">每令牌延迟低</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 第2节：有缺陷的解决方案 -->
+        <section class="my-16">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">无法实现的权衡：速度与质量</h2>
+                <p class="max-w-4xl mx-auto text-lg text-gray-700">在CacheBlend出现之前，开发人员面临着一个艰难的选择。现有的缓存策略迫使他们做出妥协：要么接受高质量结果的缓慢性能，要么为了速度牺牲质量。这两种选择对于构建强大的RAG应用程序来说都不是理想的。</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="chart-container" style="height: 350px;">
+                    <canvas id="tradeoffChart"></canvas>
+                </div>
+                <p class="text-center mt-4 text-gray-600">此图说明了在CacheBlend之前的解决方案中速度和质量之间的根本冲突。“完全KV重用”速度快，但由于忽略了文档块之间的交叉注意力，其质量急剧下降。</p>
+            </div>
+        </section>
+        
+        <!-- 第3节：介绍CacheBlend -->
+        <section class="my-16">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">CacheBlend：两全其美</h2>
+                <p class="max-w-4xl mx-auto text-lg text-gray-700">CacheBlend引入了“选择性KV重计算”，这是一种打破权衡的创新技术。它智能地融合预计算的KV缓存，修复最关键的注意力数据，以实现缓存的速度和完全重计算的质量。</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+                <h3 class="text-2xl font-bold text-center mb-8">可视化缓存策略</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="arch-card">
+                        <h4 class="arch-title mb-2">1. 完全重计算（默认）</h4>
+                        <p class="text-sm text-gray-600 mb-4">所有块都从头开始组合和处理。准确但非常慢。</p>
+                        <div class="flex items-center justify-center p-4 border rounded-md"><div class="flex space-x-1"><div class="arch-chunk">块 1</div><div class="arch-chunk">块 2</div><div class="arch-chunk">查询</div></div><div class="mx-4 text-2xl text-gray-400">&rarr;</div><div class="arch-kv w-24">完整KV缓存</div></div>
+                        <div class="flex justify-between mt-2 font-semibold text-sm"><span class="text-red-600">速度：最慢</span><span class="text-green-600">质量：最佳</span></div>
+                    </div>
+                    <div class="arch-card">
+                        <h4 class="arch-title mb-2">2. 完全KV重用（朴素）</h4>
+                        <p class="text-sm text-gray-600 mb-4">预先计算的缓存只是简单地粘合在一起。速度快但不准确。</p>
+                        <div class="flex items-center justify-center p-4 border rounded-md"><div class="flex flex-col space-y-1"><div class="arch-kv w-32 relative">KV缓存（块 1）</div><div class="arch-kv w-32 relative"><div class="arch-cross-attention-fail">X</div>KV缓存（块 2）</div><div class="arch-kv w-32 relative"><div class="arch-cross-attention-fail">X</div>KV缓存（查询）</div></div></div>
+                        <p class="text-center text-xs text-red-600 font-bold mt-1">忽略交叉注意力！</p>
+                        <div class="flex justify-between mt-2 font-semibold text-sm"><span class="text-green-600">速度：最快</span><span class="text-red-600">质量：低</span></div>
+                    </div>
+                    <div class="arch-card">
+                        <h4 class="arch-title mb-2">3. 前缀缓存</h4>
+                        <p class="text-sm text-gray-600 mb-4">只有第一个块的缓存可以重用。对RAG的加速很小。</p>
+                        <div class="flex items-center justify-center p-4 border rounded-md"><div class="flex flex-col space-y-2"><div class="arch-kv w-32">重用的KV（块 1）</div><div class="flex items-center"><div class="flex space-x-1"><div class="arch-chunk">块 2</div><div class="arch-chunk">查询</div></div><div class="mx-2 text-xl text-gray-400">&rarr;</div><div class="arch-kv">新KV缓存</div></div></div></div>
+                        <div class="flex justify-between mt-2 font-semibold text-sm"><span class="text-yellow-600">速度：稍快</span><span class="text-green-600">质量：最佳</span></div>
+                    </div>
+                    <div class="arch-card border-4 border-blue-400">
+                        <h4 class="arch-title mb-2 text-blue-600">4. CacheBlend（我们的解决方案）</h4>
+                        <p class="text-sm text-gray-600 mb-4">重用所有缓存并智能地重计算一小部分以修复交叉注意力。</p>
+                        <div class="flex items-center justify-center p-4 border rounded-md"><div class="flex flex-col space-y-1"><div class="arch-kv w-40 flex justify-between items-center"><span>KV（块 1）</span> <span class="arch-recompute">修复</span></div><div class="arch-kv w-40 flex justify-between items-center"><span>KV（块 2）</span> <span class="arch-recompute">修复</span></div><div class="arch-kv w-40 flex justify-between items-center"><span>KV（查询）</span> <span class="arch-recompute">修复</span></div></div></div>
+                        <div class="flex justify-between mt-2 font-semibold text-sm"><span class="text-green-600">速度：最快</span><span class="text-green-600">质量：最佳</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 第4节：工作原理 -->
+        <section class="my-16">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">底层原理：渐进式过滤方案</h2>
+                <p class="max-w-4xl mx-auto text-lg text-gray-700">CacheBlend的魔力在于其“渐进式过滤”方法。它不是重新计算所有内容，而是识别并修复KV缓存中影响最大（5-18%）的部分，然后使用智能流水线技术完全隐藏计算时间。</p>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white rounded-lg shadow-md p-6 flex flex-col">
+                    <h3 class="text-2xl font-bold text-center mb-6">识别要修复的内容</h3>
+                    <div class="flex-grow flex flex-col space-y-4">
+                        <div class="p-3 border-2 border-blue-300 rounded-lg bg-blue-50">
+                            <p class="font-bold text-blue-800">第1层：获取基准真相</p>
+                            <p class="text-sm text-gray-700 mt-1">仅对第一层执行完整的预填充。这可以识别出注意力值变化最大的“高KV偏差”（HKVD）令牌的初始集合。</p>
+                        </div>
+                        <div class="self-center text-3xl font-bold text-blue-400">&darr;</div>
+                        <div class="p-3 border-2 border-teal-300 rounded-lg bg-teal-50">
+                            <p class="font-bold text-teal-800">第2层：选择性重计算</p>
+                            <p class="text-sm text-gray-700 mt-1">对于第2层，仅重新计算在第1层中识别出的HKVD令牌的KV值。所有其他令牌的KV值直接从缓存中加载。</p>
+                        </div>
+                        <div class="self-center text-3xl font-bold text-teal-400">&darr;</div>
+                        <div class="p-3 border-2 border-indigo-300 rounded-lg bg-indigo-50">
+                            <p class="font-bold text-indigo-800">第N层：传播和重复</p>
+                            <p class="text-sm text-gray-700 mt-1">此过程对所有后续层重复，以最小的计算成本在模型中传播校正后的注意力信息。</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-2xl font-bold text-center mb-6">流水线：隐藏延迟</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="font-semibold mb-1">GPU任务：</p>
+                            <div class="flex space-x-2">
+                                <div class="flex-1 p-2 bg-blue-500 text-white rounded text-center text-sm">重计算第1层</div>
+                                <div class="flex-1 p-2 bg-blue-500 text-white rounded text-center text-sm">重计算第2层</div>
+                                <div class="flex-1 p-2 bg-blue-500 text-white rounded text-center text-sm">重计算第3层</div>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="font-semibold mb-1">I/O任务（来自CPU/SSD）：</p>
+                            <div class="flex space-x-2">
+                                <div class="flex-1 p-2 bg-teal-500 text-white rounded text-center text-sm">加载第2层的KV</div>
+                                <div class="flex-1 p-2 bg-teal-500 text-white rounded text-center text-sm">加载第3层的KV</div>
+                                <div class="flex-1 p-2 bg-teal-500 text-white rounded text-center text-sm">加载第4层的KV</div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-center mt-6 text-gray-600">通过将GPU重计算与数据加载重叠，只要重计算时间（T_recompute）小于加载时间（T_load），重计算时间就可以被有效隐藏。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 第5节：性能回报 -->
+        <section class="my-16">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">性能回报：数据说话</h2>
+                <p class="max-w-4xl mx-auto text-lg text-gray-700">CacheBlend的理论优势转化为不同模型上显著、可衡量的实际性能改进，显著提高了服务器吞吐量并减少了用户感知的延迟。</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                 <h3 class="text-2xl font-bold text-center mb-6">128k上下文长度下的吞吐量增益</h3>
+                <div class="chart-container">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+                <p class="text-center mt-4 text-gray-600">与标准的非缓存方法相比，CacheBlend可将吞吐量提高2.8倍至5倍，使其成为生产RAG系统的游戏规则改变者。</p>
+            </div>
+        </section>
+        
+        <!-- 第6节：经济影响 -->
+        <section class="my-16">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">经济影响</h2>
+                <p class="max-w-4xl mx-auto text-lg text-gray-700">更快的推理和更高的吞吐量不仅是技术上的胜利，它们直接转化为巨大的成本节约和新的商业机会。</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="stat-card">
+                    <div class="stat-number">5x</div>
+                    <div class="stat-label">最大吞吐量提升</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">80%</div>
+                    <div class="stat-label">潜在成本降低</div>
+                </div>
+            </div>
+             <p class="text-center mt-8 text-gray-600 max-w-2xl mx-auto">通过在相同硬件上处理多达5倍的请求，CacheBlend可以将每个请求的运营成本降低多达80%，使以前成本高昂的长上下文应用程序在商业上变得可行。</p>
+        </section>
+
+        <!-- 第7节：结论与行动号召 -->
+        <section class="my-16 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">RAG的未来是快速且经济实惠的</h2>
+            <p class="max-w-4xl mx-auto text-lg text-gray-700 mb-8">CacheBlend不仅仅是一篇研究论文，它是一个实用的开源解决方案。通过与vLLM等领先的推理引擎集成，它使开发人员能够立即构建下一代功能强大、响应迅速且具有成本效益的AI应用程序。</p>
+            <div class="inline-block bg-gray-800 rounded-lg p-4 font-mono text-left text-green-400 shadow-lg">
+                <span class="text-gray-400">$</span> pip install lmcache
+            </div>
+            <p class="mt-4 text-gray-600">开始使用开源LMCache项目。</p>
+        </section>
+
+    </main>
+
+    <footer class="text-center py-6 bg-white border-t">
+        <p class="text-gray-500">信息图表基于论文 "CacheBlend: Fast Large Language Model Serving for RAG with Cached Knowledge Fusion" 生成。</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const brilliantBlues = ['#1B4965', '#5FA8D3', '#62B6CB', '#CAE9FF'];
+            const accentColors = {
+                red: 'rgba(239, 68, 68, 0.8)',
+                green: 'rgba(34, 197, 94, 0.8)',
+                yellow: 'rgba(234, 179, 8, 0.8)',
+                blue: 'rgba(59, 130, 246, 0.8)',
+            };
+            const borderColors = {
+                red: 'rgb(239, 68, 68)',
+                green: 'rgb(34, 197, 94)',
+                yellow: 'rgb(234, 179, 8)',
+                blue: 'rgb(59, 130, 246)',
+            };
+
+            function wrapLabels(label, maxWidth) {
+                if (typeof label !== 'string' || label.length <= maxWidth) {
+                    return label;
+                }
+                const words = label.split(' ');
+                let lines = [];
+                let currentLine = '';
+                for (const word of words) {
+                    if ((currentLine + ' ' + word).trim().length > maxWidth) {
+                        lines.push(currentLine.trim());
+                        currentLine = word;
+                    } else {
+                        currentLine = (currentLine + ' ' + word).trim();
+                    }
+                }
+                if (currentLine) {
+                    lines.push(currentLine.trim());
+                }
+                return lines;
+            }
+
+            const tooltipTitleCallback = (tooltipItems) => {
+                const item = tooltipItems[0];
+                let label = item.chart.data.labels[item.dataIndex];
+                if (Array.isArray(label)) {
+                    return label.join(' ');
+                }
+                return label;
+            };
+
+            const defaultFont = "'Noto Sans SC', 'Inter', sans-serif";
+            const defaultOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#0A2463',
+                            font: {
+                                family: defaultFont
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: tooltipTitleCallback
+                        },
+                        titleFont: { family: defaultFont },
+                        bodyFont: { family: defaultFont }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            color: '#1B4965',
+                            font: {
+                                family: defaultFont
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            color: '#1B4965',
+                            font: {
+                                family: defaultFont
+                            }
+                        },
+                        grid: {
+                            color: '#CAE9FF'
+                        },
+                        beginAtZero: true
+                    }
+                }
+            };
+            
+            // 图表1：权衡图
+            const tradeoffCtx = document.getElementById('tradeoffChart').getContext('2d');
+            const tradeoffLabels = ['完全重计算', '前缀缓存', '完全KV重用'];
+            new Chart(tradeoffCtx, {
+                type: 'bar',
+                data: {
+                    labels: tradeoffLabels,
+                    datasets: [
+                        {
+                            label: '相对速度',
+                            data: [1, 1.5, 10],
+                            backgroundColor: accentColors.green,
+                            borderColor: borderColors.green,
+                            borderWidth: 1
+                        },
+                        {
+                            label: '相对质量',
+                            data: [10, 10, 3],
+                            backgroundColor: accentColors.blue,
+                            borderColor: borderColors.blue,
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: { ...defaultOptions,
+                    scales: {
+                        x: { ...defaultOptions.scales.x },
+                        y: { ...defaultOptions.scales.y,
+                            title: {
+                                display: true,
+                                text: '任意单位',
+                                color: '#1B4965',
+                                font: { family: defaultFont }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 图表2：性能图
+            const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+            const performanceLabels = ['Mistral-7B', 'Yi-34B', 'Llama-70B'];
+            new Chart(performanceCtx, {
+                type: 'bar',
+                data: {
+                    labels: performanceLabels,
+                    datasets: [
+                        {
+                            label: '完全重计算（基线）',
+                            data: [1, 1, 1],
+                            backgroundColor: brilliantBlues[3],
+                            borderColor: brilliantBlues[1],
+                            borderWidth: 1,
+                        },
+                        {
+                            label: 'CacheBlend吞吐量',
+                            data: [5.0, 3.5, 2.8],
+                            backgroundColor: brilliantBlues[1],
+                            borderColor: brilliantBlues[0],
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: { ...defaultOptions,
+                    scales: {
+                        x: { ...defaultOptions.scales.x,
+                            title: {
+                                display: true,
+                                text: '模型',
+                                color: '#1B4965',
+                                font: { family: defaultFont }
+                            }
+                        },
+                        y: { ...defaultOptions.scales.y,
+                             title: {
+                                display: true,
+                                text: '归一化吞吐量（快x倍）',
+                                color: '#1B4965',
+                                font: { family: defaultFont }
+                            }
+                        }
+                    },
+                     plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: '#0A2463',
+                                font: {
+                                    size: 14,
+                                    family: defaultFont
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: tooltipTitleCallback
+                            },
+                            titleFont: { family: defaultFont },
+                            bodyFont: { family: defaultFont }
+                        }
+                    }
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>

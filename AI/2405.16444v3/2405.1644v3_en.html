@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CacheBlend: A Visual Deep Dive into High-Performance RAG</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <!-- 
+    Infographic Plan:
+    1.  Narrative Structure:
+        -   Section 1: The RAG Bottleneck (Problem Introduction).
+        -   Section 2: The Impossible Trade-off (Existing Flawed Solutions).
+        -   Section 3: Introducing CacheBlend (The Solution).
+        -   Section 4: How It Works (Technical Deep Dive: Selective Recompute & Pipelining).
+        -   Section 5: The Performance Payoff (Quantitative Results).
+        -   Section 6: The Economic Impact (Business Value).
+        -   Section 7: Conclusion & Adoption (Future & Call to Action).
+
+    2.  Color Palette Selection:
+        -   Name: Brilliant Blues
+        -   Usage: A professional, tech-oriented theme.
+        -   HEX Codes:
+            -   Background: #F0F7FF (Light Sky Blue)
+            -   Dark Text/Primary: #0A2463 (Deep Navy)
+            -   Headings/Accent: #3E92CC (Bright Cerulean)
+            -   Chart Palette: [#1B4965, #5FA8D3, #62B6CB, #CAE9FF]
+
+    3.  Visualization Choices (NO SVG, NO MERMAID JS):
+        -   RAG Process Flow: Goal=Organize, Method=HTML/CSS Diagram.
+        -   Solution Comparison: Goal=Compare, Method=Chart.js Grouped Bar Chart.
+        -   Architecture Comparison: Goal=Organize/Compare, Method=HTML/CSS Diagram.
+        -   Gradual Filtering Diagram: Goal=Organize, Method=HTML/CSS Diagram.
+        -   Pipelining Timeline: Goal=Organize, Method=HTML/CSS Timeline Diagram.
+        -   Performance Gains (Throughput by Model): Goal=Compare, Method=Chart.js Grouped Bar Chart.
+        -   Economic Impact: Goal=Inform, Method=Styled Stat Cards.
+
+    4.  Confirmation of Constraints:
+        -   NEITHER Mermaid JS NOR SVG were used anywhere in this output. All diagrams are custom HTML/CSS. All charts use the HTML5 Canvas via Chart.js.
+    -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F0F7FF;
+            color: #0A2463;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 450px;
+        }
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .stat-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            border-left: 8px solid #3E92CC;
+        }
+        .stat-number {
+            font-size: 4rem;
+            font-weight: 900;
+            color: #1B4965;
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: 1.125rem;
+            color: #3E92CC;
+            margin-top: 0.5rem;
+        }
+        h1, h2, h3 {
+            font-weight: 700;
+        }
+        h1 {
+            color: #0A2463;
+            font-weight: 900;
+        }
+        h2 {
+            color: #1B4965;
+        }
+        .flow-arrow {
+            font-size: 2rem;
+            color: #3E92CC;
+            line-height: 1;
+            margin: 0 0.5rem;
+        }
+        .arch-card {
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #CAE9FF;
+            height: 100%;
+        }
+        .arch-title {
+            font-weight: 600;
+            color: #0A2463;
+        }
+        .arch-chunk {
+            border: 2px solid #5FA8D3;
+            background-color: #E0F2FE;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+        .arch-kv {
+            border: 2px dashed #1B4965;
+            background-color: #F0F7FF;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            margin-top: 0.5rem;
+            position: relative;
+        }
+        .arch-recompute {
+            background-color: #62B6CB;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.25rem;
+        }
+        .arch-cross-attention-fail {
+            position: absolute;
+            top: 50%;
+            left: -10px;
+            transform: translateY(-50%);
+            color: #EF4444;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white py-8 px-4 text-center shadow-md">
+        <h1 class="text-4xl md:text-5xl font-black mb-2">CacheBlend: The End of RAG Latency</h1>
+        <p class="text-lg md:text-xl max-w-3xl mx-auto text-gray-600">A visual deep dive into the technology that makes Retrieval-Augmented Generation fast, efficient, and commercially viable.</p>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+
+        <!-- Section 1: The Bottleneck -->
+        <section class="my-12">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">The RAG Performance Problem: Why Your AI Feels Slow</h2>
+                <p class="max-w-4xl mx-auto text-lg text-gray-700">Retrieval-Augmented Generation (RAG) creates powerful, knowledgeable AI by feeding it relevant documents. But this creates a huge input, causing a major bottleneck in the "prefill" stage. This delay, known as Time-To-First-Token (TTFT), is what makes the AI feel sluggish before it even starts writing.</p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6 md:p-8">
+                <h3 class="text-2xl font-bold text-center mb-6">The RAG Inference Flow & The Prefill Bottleneck</h3>
+                <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 flex-wrap">
+                    <div class="text-center"><div class="p-4 bg-blue-100 border-2 border-blue-300 rounded-lg shadow">Query</div></div>
+                    <div class="flow-arrow transform md:rotate-0 rotate-90">&rarr;</div>
+                    <div class="text-center"><div class="p-4 bg-blue-100 border-2 border-blue-300 rounded-lg shadow">Retrieve Docs</div></div>
+                    <div class="flow-arrow transform md:rotate-0 rotate-90">&rarr;</div>
+                    <div class="text-center">
+                        <div class="p-4 bg-red-100 border-4 border-red-500 rounded-lg shadow-xl relative">
+                            <span class="absolute -top-3 -right-3 px-2 py-1 text-xs font-bold text-white bg-red-600 rounded-full">BOTTLENECK</span>
+                            LLM Prefill Stage
+                        </div>
+                        <p class="text-sm text-red-700 mt-2 font-semibold">High TTFT</p>
+                    </div>
+                    <div class="flow-arrow transform md:rotate-0 rotate-90">&rarr;</div>
+                    <div class="text-center">
+                        <div class="p-4 bg-green-100 border-2 border-green-300 rounded-lg shadow">Fast Decoding</div>
+                        <p class="text-sm text-green-700 mt-2 font-semibold">Low Latency Per Token</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: The Flawed Solutions -->
+        <section class="my-16">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">The Impossible Trade-off: Speed vs. Quality</h2>
+                <p class="max-w-4xl mx-auto text-lg text-gray-700">Before CacheBlend, developers faced a difficult choice. Existing caching strategies forced a compromise: either accept slow performance for high-quality results, or sacrifice quality for speed. Neither option was ideal for building robust RAG applications.</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="chart-container" style="height: 350px;">
+                    <canvas id="tradeoffChart"></canvas>
+                </div>
+                <p class="text-center mt-4 text-gray-600">This chart illustrates the fundamental conflict. "Full KV Reuse" is fast but its quality suffers dramatically from ignoring cross-attention between document chunks.</p>
+            </div>
+        </section>
+        
+        <!-- Section 3: Introducing CacheBlend -->
+        <section class="my-16">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">CacheBlend: The Best of Both Worlds</h2>
+                <p class="max-w-4xl mx-auto text-lg text-gray-700">CacheBlend introduces "Selective KV Recompute," an innovative technique that breaks the trade-off. It intelligently fuses pre-computed KV caches, repairing the most critical attention data to achieve the speed of caching with the quality of a full re-computation.</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+                <h3 class="text-2xl font-bold text-center mb-8">Visualizing Caching Strategies</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="arch-card">
+                        <h4 class="arch-title mb-2">1. Full Re-compute (Default)</h4>
+                        <p class="text-sm text-gray-600 mb-4">All chunks are combined and processed from scratch. Accurate but very slow.</p>
+                        <div class="flex items-center justify-center p-4 border rounded-md"><div class="flex space-x-1"><div class="arch-chunk">Chunk 1</div><div class="arch-chunk">Chunk 2</div><div class="arch-chunk">Query</div></div><div class="mx-4 text-2xl text-gray-400">&rarr;</div><div class="arch-kv w-24">Full KV Cache</div></div>
+                        <div class="flex justify-between mt-2 font-semibold text-sm"><span class="text-red-600">Speed: Slowest</span><span class="text-green-600">Quality: Best</span></div>
+                    </div>
+                    <div class="arch-card">
+                        <h4 class="arch-title mb-2">2. Full KV Reuse (Naive)</h4>
+                        <p class="text-sm text-gray-600 mb-4">Pre-calculated caches are simply stuck together. Fast but inaccurate.</p>
+                        <div class="flex items-center justify-center p-4 border rounded-md"><div class="flex flex-col space-y-1"><div class="arch-kv w-32 relative">KV Cache (Chunk 1)</div><div class="arch-kv w-32 relative"><div class="arch-cross-attention-fail">X</div>KV Cache (Chunk 2)</div><div class="arch-kv w-32 relative"><div class="arch-cross-attention-fail">X</div>KV Cache (Query)</div></div></div>
+                        <p class="text-center text-xs text-red-600 font-bold mt-1">Ignores Cross-Attention!</p>
+                        <div class="flex justify-between mt-2 font-semibold text-sm"><span class="text-green-600">Speed: Fastest</span><span class="text-red-600">Quality: Low</span></div>
+                    </div>
+                    <div class="arch-card">
+                        <h4 class="arch-title mb-2">3. Prefix Caching</h4>
+                        <p class="text-sm text-gray-600 mb-4">Only the first chunk's cache can be reused. Minor speedup for RAG.</p>
+                        <div class="flex items-center justify-center p-4 border rounded-md"><div class="flex flex-col space-y-2"><div class="arch-kv w-32">Reused KV (Chunk 1)</div><div class="flex items-center"><div class="flex space-x-1"><div class="arch-chunk">Chunk 2</div><div class="arch-chunk">Query</div></div><div class="mx-2 text-xl text-gray-400">&rarr;</div><div class="arch-kv">New KV Cache</div></div></div></div>
+                        <div class="flex justify-between mt-2 font-semibold text-sm"><span class="text-yellow-600">Speed: Slightly Faster</span><span class="text-green-600">Quality: Best</span></div>
+                    </div>
+                    <div class="arch-card border-4 border-blue-400">
+                        <h4 class="arch-title mb-2 text-blue-600">4. CacheBlend (Our Solution)</h4>
+                        <p class="text-sm text-gray-600 mb-4">Reuses all caches and intelligently recomputes a small fraction to fix cross-attention.</p>
+                        <div class="flex items-center justify-center p-4 border rounded-md"><div class="flex flex-col space-y-1"><div class="arch-kv w-40 flex justify-between items-center"><span>KV (Chunk 1)</span> <span class="arch-recompute">Fix</span></div><div class="arch-kv w-40 flex justify-between items-center"><span>KV (Chunk 2)</span> <span class="arch-recompute">Fix</span></div><div class="arch-kv w-40 flex justify-between items-center"><span>KV (Query)</span> <span class="arch-recompute">Fix</span></div></div></div>
+                        <div class="flex justify-between mt-2 font-semibold text-sm"><span class="text-green-600">Speed: Fastest</span><span class="text-green-600">Quality: Best</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: How It Works -->
+        <section class="my-16">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Under the Hood: The Gradual Filtering Scheme</h2>
+                <p class="max-w-4xl mx-auto text-lg text-gray-700">CacheBlend's magic lies in its "Gradual Filtering" approach. Instead of recomputing everything, it identifies and fixes only the most impactful (5-18%) parts of the KV cache, then uses smart pipelining to hide the computation time completely.</p>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white rounded-lg shadow-md p-6 flex flex-col">
+                    <h3 class="text-2xl font-bold text-center mb-6">Identifying What to Fix</h3>
+                    <div class="flex-grow flex flex-col space-y-4">
+                        <div class="p-3 border-2 border-blue-300 rounded-lg bg-blue-50">
+                            <p class="font-bold text-blue-800">Layer 1: Get Ground Truth</p>
+                            <p class="text-sm text-gray-700 mt-1">Perform a full prefill for the first layer only. This identifies the initial set of "High-KV-Deviation" (HKVD) tokens whose attention values changed the most.</p>
+                        </div>
+                        <div class="self-center text-3xl font-bold text-blue-400">&darr;</div>
+                        <div class="p-3 border-2 border-teal-300 rounded-lg bg-teal-50">
+                            <p class="font-bold text-teal-800">Layer 2: Selective Recompute</p>
+                            <p class="text-sm text-gray-700 mt-1">For Layer 2, only recompute the KV values for the HKVD tokens identified in Layer 1. All other tokens' KV values are loaded directly from the cache.</p>
+                        </div>
+                        <div class="self-center text-3xl font-bold text-teal-400">&darr;</div>
+                        <div class="p-3 border-2 border-indigo-300 rounded-lg bg-indigo-50">
+                            <p class="font-bold text-indigo-800">Layer N: Propagate & Repeat</p>
+                            <p class="text-sm text-gray-700 mt-1">This process repeats for all subsequent layers, propagating the corrected attention information through the model with minimal computational cost.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-2xl font-bold text-center mb-6">Pipelining: Hiding Latency</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="font-semibold mb-1">GPU Task:</p>
+                            <div class="flex space-x-2">
+                                <div class="flex-1 p-2 bg-blue-500 text-white rounded text-center text-sm">Recompute Layer 1</div>
+                                <div class="flex-1 p-2 bg-blue-500 text-white rounded text-center text-sm">Recompute Layer 2</div>
+                                <div class="flex-1 p-2 bg-blue-500 text-white rounded text-center text-sm">Recompute Layer 3</div>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="font-semibold mb-1">I/O Task (from CPU/SSD):</p>
+                            <div class="flex space-x-2">
+                                <div class="flex-1 p-2 bg-teal-500 text-white rounded text-center text-sm">Load KV for Layer 2</div>
+                                <div class="flex-1 p-2 bg-teal-500 text-white rounded text-center text-sm">Load KV for Layer 3</div>
+                                <div class="flex-1 p-2 bg-teal-500 text-white rounded text-center text-sm">Load KV for Layer 4</div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-center mt-6 text-gray-600">By overlapping GPU recomputation with data loading, the recomputation time (T_recompute) is effectively hidden, as long as it's less than the loading time (T_load).</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: The Performance Payoff -->
+        <section class="my-16">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">The Performance Payoff: By the Numbers</h2>
+                <p class="max-w-4xl mx-auto text-lg text-gray-700">The theoretical advantages of CacheBlend translate into dramatic, measurable improvements across different models, significantly boosting server throughput and reducing user-perceived latency.</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                 <h3 class="text-2xl font-bold text-center mb-6">Throughput Gains at 128k Context Length</h3>
+                <div class="chart-container">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+                <p class="text-center mt-4 text-gray-600">CacheBlend delivers a 2.8x to 5x increase in throughput compared to the standard, non-cached approach, making it a game-changer for production RAG systems.</p>
+            </div>
+        </section>
+        
+        <!-- Section 6: The Economic Impact -->
+        <section class="my-16">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">The Economic Impact</h2>
+                <p class="max-w-4xl mx-auto text-lg text-gray-700">Faster inference and higher throughput aren't just technical wins; they translate directly into major cost savings and new business opportunities.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="stat-card">
+                    <div class="stat-number">5x</div>
+                    <div class="stat-label">Max Throughput Increase</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">80%</div>
+                    <div class="stat-label">Potential Cost Reduction</div>
+                </div>
+            </div>
+             <p class="text-center mt-8 text-gray-600 max-w-2xl mx-auto">By serving up to 5 times more requests on the same hardware, CacheBlend can reduce the operational cost per request by up to 80%, making previously cost-prohibitive long-context applications commercially viable.</p>
+        </section>
+
+        <!-- Section 7: Conclusion & Call to Action -->
+        <section class="my-16 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">The Future of RAG is Fast & Affordable</h2>
+            <p class="max-w-4xl mx-auto text-lg text-gray-700 mb-8">CacheBlend is not just a research paper; it's a practical, open-source solution. By integrating with leading inference engines like vLLM, it empowers developers to build the next generation of powerful, responsive, and cost-effective AI applications today.</p>
+            <div class="inline-block bg-gray-800 rounded-lg p-4 font-mono text-left text-green-400 shadow-lg">
+                <span class="text-gray-400">$</span> pip install lmcache
+            </div>
+            <p class="mt-4 text-gray-600">Get started with the open-source LMCache project.</p>
+        </section>
+
+    </main>
+
+    <footer class="text-center py-6 bg-white border-t">
+        <p class="text-gray-500">Infographic generated based on the paper "CacheBlend: Fast Large Language Model Serving for RAG with Cached Knowledge Fusion".</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const brilliantBlues = ['#1B4965', '#5FA8D3', '#62B6CB', '#CAE9FF'];
+            const accentColors = {
+                red: 'rgba(239, 68, 68, 0.8)',
+                green: 'rgba(34, 197, 94, 0.8)',
+                yellow: 'rgba(234, 179, 8, 0.8)',
+                blue: 'rgba(59, 130, 246, 0.8)',
+            };
+            const borderColors = {
+                red: 'rgb(239, 68, 68)',
+                green: 'rgb(34, 197, 94)',
+                yellow: 'rgb(234, 179, 8)',
+                blue: 'rgb(59, 130, 246)',
+            };
+
+            function wrapLabels(label, maxWidth) {
+                if (typeof label !== 'string' || label.length <= maxWidth) {
+                    return label;
+                }
+                const words = label.split(' ');
+                let lines = [];
+                let currentLine = '';
+                for (const word of words) {
+                    if ((currentLine + ' ' + word).trim().length > maxWidth) {
+                        lines.push(currentLine.trim());
+                        currentLine = word;
+                    } else {
+                        currentLine = (currentLine + ' ' + word).trim();
+                    }
+                }
+                if (currentLine) {
+                    lines.push(currentLine.trim());
+                }
+                return lines;
+            }
+
+            const tooltipTitleCallback = (tooltipItems) => {
+                const item = tooltipItems[0];
+                let label = item.chart.data.labels[item.dataIndex];
+                if (Array.isArray(label)) {
+                    return label.join(' ');
+                }
+                return label;
+            };
+
+            const defaultOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#0A2463',
+                            font: {
+                                family: "'Inter', sans-serif"
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: tooltipTitleCallback
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            color: '#1B4965',
+                            font: {
+                                family: "'Inter', sans-serif"
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            color: '#1B4965',
+                            font: {
+                                family: "'Inter', sans-serif"
+                            }
+                        },
+                        grid: {
+                            color: '#CAE9FF'
+                        },
+                        beginAtZero: true
+                    }
+                }
+            };
+            
+            // Chart 1: Tradeoff Chart
+            const tradeoffCtx = document.getElementById('tradeoffChart').getContext('2d');
+            const tradeoffLabels = ['Full Re-compute', 'Prefix Caching', 'Full KV Reuse'];
+            new Chart(tradeoffCtx, {
+                type: 'bar',
+                data: {
+                    labels: tradeoffLabels.map(l => wrapLabels(l, 16)),
+                    datasets: [
+                        {
+                            label: 'Relative Speed',
+                            data: [1, 1.5, 10],
+                            backgroundColor: accentColors.green,
+                            borderColor: borderColors.green,
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Relative Quality',
+                            data: [10, 10, 3],
+                            backgroundColor: accentColors.blue,
+                            borderColor: borderColors.blue,
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: { ...defaultOptions,
+                    scales: {
+                        x: { ...defaultOptions.scales.x },
+                        y: { ...defaultOptions.scales.y,
+                            title: {
+                                display: true,
+                                text: 'Arbitrary Units',
+                                color: '#1B4965'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Chart 2: Performance Chart (New Detailed Version)
+            const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+            const performanceLabels = ['Mistral-7B', 'Yi-34B', 'Llama-70B'];
+            new Chart(performanceCtx, {
+                type: 'bar',
+                data: {
+                    labels: performanceLabels,
+                    datasets: [
+                        {
+                            label: 'Full Re-compute (Baseline)',
+                            data: [1, 1, 1],
+                            backgroundColor: brilliantBlues[3],
+                            borderColor: brilliantBlues[1],
+                            borderWidth: 1,
+                        },
+                        {
+                            label: 'CacheBlend Throughput',
+                            data: [5.0, 3.5, 2.8],
+                            backgroundColor: brilliantBlues[1],
+                            borderColor: brilliantBlues[0],
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: { ...defaultOptions,
+                    scales: {
+                        x: { ...defaultOptions.scales.x,
+                            title: {
+                                display: true,
+                                text: 'Model',
+                                color: '#1B4965'
+                            }
+                        },
+                        y: { ...defaultOptions.scales.y,
+                             title: {
+                                display: true,
+                                text: 'Normalized Throughput (x-times faster)',
+                                color: '#1B4965'
+                            }
+                        }
+                    },
+                     plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: '#0A2463',
+                                font: {
+                                    size: 14,
+                                    family: "'Inter', sans-serif"
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: tooltipTitleCallback
+                            }
+                        }
+                    }
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>
