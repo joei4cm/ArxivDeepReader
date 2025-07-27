@@ -104,8 +104,8 @@
       ]
     },
     "2405.16444": {
-      "title": "CacheBlend: 高性能RAG技术深度解析",
-      "description": "深入探讨让检索增强生成（RAG）变得快速、高效且商业化可行的核心技术。",
+      "title": "CacheBlend: A Visual Deep Dive into High-Performance RAG",
+      "description": "A visual deep dive into the technology that makes Retrieval-Augmented Generation fast, efficient, and commercially viable.",
       "category": "KV缓存优化",
       "categoryColor": "blue",
       "tags": [
@@ -122,18 +122,18 @@
       "folder": "2405.16444v3",
       "files": [
         {
-          "name": "2405.1644v3_cn.html",
+          "name": "2405.1644v3_en.html",
           "type": "analysis",
           "priority": 1,
           "icon": "📖",
           "label": "深度解析"
         },
         {
-          "name": "2405.1644v3_en.html",
+          "name": "2405.1644v3_cn.html",
           "type": "analysis",
           "priority": 1,
           "icon": "📖",
-          "label": "深度解析(EN)"
+          "label": "深度解析"
         },
         {
           "name": "2405.16444v3.pdf",
@@ -152,7 +152,7 @@
       ]
     },
     "1706.03762": {
-      "title": "解构革命: 'Attention Is All You Need' 可视化指南",
+      "title": "解构革命: 'Attention Is All You Need' 可视化指南 (含MoE)",
       "description": "在Transformer横空出世前，语言模型的世界由循环神经网络（RNN）主导。它们像一个逐字阅读的读者，但存在两个致命缺陷：容易“遗忘”长距离信息，且天生的“串行”处理机制严重拖慢了训练速度，成为了AI发展的瓶颈。",
       "category": "KV缓存优化",
       "categoryColor": "blue",
@@ -191,12 +191,142 @@
           "label": "PDF文档"
         }
       ]
+    },
+    "2403.03206": {
+      "title": "Stable Diffusion 3 架构解析",
+      "description": "一份详细介绍 Stable Diffusion 3 背后技术：多模态扩散变换器 (MMDiT) 的信息图。",
+      "category": "图像生成",
+      "categoryColor": "pink",
+      "tags": [
+        "扩散模型",
+        "多模态",
+        "图像生成"
+      ],
+      "tagColors": [
+        "pink",
+        "indigo",
+        "cyan"
+      ],
+      "gradient": "from-pink-600 to-rose-600",
+      "folder": "2403.03206v1",
+      "files": [
+        {
+          "name": "2403.03206v1.html",
+          "type": "analysis",
+          "priority": 1,
+          "icon": "📖",
+          "label": "深度解析"
+        },
+        {
+          "name": "2403.03206v1.pdf",
+          "type": "original",
+          "priority": 2,
+          "icon": "📄",
+          "label": "原文PDF"
+        },
+        {
+          "name": "论文解读：自知识增强模型_.pdf",
+          "type": "document",
+          "priority": 3,
+          "icon": "📄",
+          "label": "PDF文档"
+        }
+      ]
+    },
+    "2505.09388": {
+      "title": "Qwen3技术报告：信息图表",
+      "description": "Qwen3提供从轻量级边缘设备到强大云服务器的全方位模型，涵盖密集型（Dense）和高效的混合专家（MoE）架构。",
+      "category": "模型训练",
+      "categoryColor": "purple",
+      "tags": [
+        "训练优化",
+        "参数高效",
+        "微调技术"
+      ],
+      "tagColors": [
+        "blue",
+        "green",
+        "purple"
+      ],
+      "gradient": "from-purple-600 to-indigo-600",
+      "folder": "2505.09388v1",
+      "files": [
+        {
+          "name": "2505.09388v1.html",
+          "type": "analysis",
+          "priority": 1,
+          "icon": "📖",
+          "label": "深度解析"
+        },
+        {
+          "name": "2505.09388v1.pdf",
+          "type": "original",
+          "priority": 2,
+          "icon": "📄",
+          "label": "原文PDF"
+        },
+        {
+          "name": "论文分析：Qwen3模型规格与变种_.pdf",
+          "type": "analysis_pdf",
+          "priority": 2,
+          "icon": "📊",
+          "label": "分析报告"
+        }
+      ]
+    },
+    "2106.09685": {
+      "title": "AI之眼的演化 - 可变形注意力",
+      "description": "探索AI如何学会停止关注一切，开始专注于重要的事物，甚至开始做梦。",
+      "category": "计算机视觉",
+      "categoryColor": "green",
+      "tags": [
+        "注意力机制",
+        "计算机视觉",
+        "可变形卷积"
+      ],
+      "tagColors": [
+        "green",
+        "blue",
+        "teal"
+      ],
+      "gradient": "from-green-600 to-teal-600",
+      "folder": "2106.09685v2",
+      "files": [
+        {
+          "name": "2106.09685v2_cn.html",
+          "type": "analysis",
+          "priority": 1,
+          "icon": "📖",
+          "label": "深度解析"
+        },
+        {
+          "name": "2106.09685v2_en.html",
+          "type": "analysis",
+          "priority": 1,
+          "icon": "📖",
+          "label": "深度解析(EN)"
+        },
+        {
+          "name": "2106.09685v2.pdf",
+          "type": "original",
+          "priority": 2,
+          "icon": "📄",
+          "label": "原文PDF"
+        },
+        {
+          "name": "论文分析：Deformable Attention Transformer_.pdf",
+          "type": "analysis_pdf",
+          "priority": 2,
+          "icon": "📊",
+          "label": "分析报告"
+        }
+      ]
     }
   },
   "statistics": {
-    "totalPapers": 4,
-    "totalDocuments": 16
+    "totalPapers": 7,
+    "totalDocuments": 26
   },
-  "lastUpdated": "2025-07-27T00:40:37.453784Z",
+  "lastUpdated": "2025-07-27T08:43:29.980253Z",
   "version": "1.0.0"
 }

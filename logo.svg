@@ -1,0 +1,59 @@
+<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#764ba2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f093fb;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4facfe;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/> 
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="20" cy="20" r="18" fill="url(#primaryGradient)" opacity="0.1" stroke="url(#primaryGradient)" stroke-width="1"/>
+  
+  <!-- Main document icon -->
+  <g transform="translate(8, 6)">
+    <!-- Document base -->
+    <rect x="2" y="4" width="16" height="20" rx="2" ry="2" fill="url(#primaryGradient)" opacity="0.9"/>
+    
+    <!-- Document fold -->
+    <path d="M 15 4 L 18 4 L 18 7 Z" fill="url(#accentGradient)" opacity="0.8"/>
+    
+    <!-- Text lines -->
+    <rect x="5" y="8" width="10" height="1.5" rx="0.75" fill="white" opacity="0.8"/>
+    <rect x="5" y="11" width="8" height="1.5" rx="0.75" fill="white" opacity="0.6"/>
+    <rect x="5" y="14" width="9" height="1.5" rx="0.75" fill="white" opacity="0.6"/>
+    <rect x="5" y="17" width="7" height="1.5" rx="0.75" fill="white" opacity="0.4"/>
+  </g>
+  
+  <!-- Magnifying glass -->
+  <g transform="translate(22, 22)" filter="url(#glow)">
+    <!-- Glass circle -->
+    <circle cx="6" cy="6" r="5" fill="none" stroke="url(#accentGradient)" stroke-width="2.5" opacity="0.9"/>
+    <!-- Handle -->
+    <line x1="10" y1="10" x2="14" y2="14" stroke="url(#accentGradient)" stroke-width="2.5" stroke-linecap="round" opacity="0.9"/>
+    <!-- Inner highlight -->
+    <circle cx="4" cy="4" r="1.5" fill="white" opacity="0.6"/>
+  </g>
+  
+  <!-- Floating particles for tech feel -->
+  <circle cx="32" cy="12" r="1" fill="url(#accentGradient)" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="8" cy="32" r="0.8" fill="url(#primaryGradient)" opacity="0.5">
+    <animate attributeName="opacity" values="0.5;0.9;0.5" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="35" cy="28" r="0.6" fill="url(#accentGradient)" opacity="0.4">
+    <animate attributeName="opacity" values="0.4;0.8;0.4" dur="2.5s" repeatCount="indefinite"/>
+  </circle>
+</svg>

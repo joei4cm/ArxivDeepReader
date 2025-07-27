@@ -5,7 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ArXiv Deep Reader - AI论文深度解析平台</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-card: #ffffff;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --border-color: #e5e7eb;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        [data-theme="dark"] {
+            --bg-primary: #111827;
+            --bg-secondary: #1f2937;
+            --bg-card: #374151;
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --text-muted: #9ca3af;
+            --border-color: #4b5563;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+        
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        .theme-transition {
+            transition: all 0.3s ease;
+        }<link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+SC:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -23,8 +54,23 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
         .paper-card {
-            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-            border: 1px solid #e2e8f0;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            color: var(--text-primary);
+        }
+        
+        .paper-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow);
+        }
+        
+        .paper-card h3 {
+            color: var(--text-primary) !important;
+        }
+        
+        .paper-card p {
+            color: var(--text-secondary) !important;
         }
         .download-btn {
             transition: all 0.2s ease;
@@ -43,9 +89,32 @@
         }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900">
-    <!-- Header -->
-    <header class="gradient-bg text-white">
+<body class="theme-transition">
+    <!-- Navigation Header -->
+    <header class="theme-transition sticky top-0 z-50" style="background-color: var(--bg-card); box-shadow: var(--shadow);">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <img src="logo.svg" alt="ArXiv Deep Reader Logo" class="w-10 h-10">
+                    <h1 class="text-2xl font-bold" style="color: var(--text-primary);">ArXiv Deep Reader</h1>
+                    <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">AI论文解析</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <nav class="hidden md:flex space-x-8">
+                        <a href="#papers" class="theme-transition hover:opacity-80" style="color: var(--text-secondary);">论文库</a>
+                        <a href="#features" class="theme-transition hover:opacity-80" style="color: var(--text-secondary);">特色功能</a>
+                        <a href="https://soarxiv.org/" target="_blank" class="theme-transition hover:opacity-80" style="color: var(--text-secondary);">soarXiv.org</a>
+                    </nav>
+                    <button id="theme-toggle" class="p-2 rounded-lg theme-transition hover:opacity-80" style="background-color: var(--bg-secondary); color: var(--text-primary);" title="切换主题">
+                        <span id="theme-icon">🌙</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="gradient-bg text-white">
         <div class="container mx-auto px-6 py-16">
             <div class="text-center">
                 <h1 class="text-5xl md:text-7xl font-black mb-6 leading-tight">
@@ -67,36 +136,36 @@
                 </div>
             </div>
         </div>
-    </header>
+    </section>
 
     <!-- Stats Section -->
-    <section class="py-16 bg-white">
+    <section class="py-16 theme-transition" style="background-color: var(--bg-primary);">
         <div class="container mx-auto px-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
                 <div class="p-6">
                     <div id="papers-count" class="text-5xl font-black stats-number mb-2">0</div>
-                    <p class="text-gray-600 font-medium">精选论文</p>
+                    <p class="theme-transition font-medium" style="color: var(--text-secondary);">精选论文</p>
                 </div>
                 <div class="p-6">
                     <div id="documents-count" class="text-5xl font-black stats-number mb-2">0</div>
-                    <p class="text-gray-600 font-medium">技术文档</p>
+                    <p class="theme-transition font-medium" style="color: var(--text-secondary);">技术文档</p>
                 </div>
                 <div class="p-6">
                     <div class="text-5xl font-black stats-number mb-2">100%</div>
-                    <p class="text-gray-600 font-medium">深度解析</p>
+                    <p class="theme-transition font-medium" style="color: var(--text-secondary);">深度解析</p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Papers Section -->
-    <section class="py-20 bg-gray-50">
+    <section id="papers" class="py-20 theme-transition" style="background-color: var(--bg-secondary);">
         <div class="container mx-auto px-6">
             <div class="text-center mb-16">
-                <h2 class="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
+                <h2 class="text-4xl md:text-5xl font-bold mb-6 theme-transition" style="color: var(--text-primary);">
                     精选论文解析
                 </h2>
-                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                <p class="text-xl max-w-2xl mx-auto theme-transition" style="color: var(--text-secondary);">
                     深入探索最新的AI研究成果，从技术原理到实际应用的全方位解读
                 </p>
             </div>
@@ -122,13 +191,13 @@
     </section>
 
     <!-- Features Section -->
-    <section class="py-20 bg-white">
+    <section id="features" class="py-20 theme-transition" style="background-color: var(--bg-primary);">
         <div class="container mx-auto px-6">
             <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold mb-6 text-gray-900">
+                <h2 class="text-4xl font-bold mb-6 theme-transition" style="color: var(--text-primary);">
                     为什么选择 ArXiv Deep Reader？
                 </h2>
-                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                <p class="text-xl max-w-2xl mx-auto theme-transition" style="color: var(--text-secondary);">
                     我们不仅提供论文，更提供深度理解和实用洞察
                 </p>
             </div>
@@ -138,8 +207,8 @@
                     <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
                         <span class="text-2xl">🔍</span>
                     </div>
-                    <h3 class="text-xl font-bold mb-4">深度解析</h3>
-                    <p class="text-gray-600">
+                    <h3 class="text-xl font-bold mb-4 theme-transition" style="color: var(--text-primary);">深度解析</h3>
+                    <p class="theme-transition" style="color: var(--text-secondary);">
                         不仅翻译论文，更深入解读技术原理、创新点和实际应用价值
                     </p>
                 </div>
@@ -148,8 +217,8 @@
                     <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                         <span class="text-2xl">📊</span>
                     </div>
-                    <h3 class="text-xl font-bold mb-4">可视化呈现</h3>
-                    <p class="text-gray-600">
+                    <h3 class="text-xl font-bold mb-4 theme-transition" style="color: var(--text-primary);">可视化呈现</h3>
+                    <p class="theme-transition" style="color: var(--text-secondary);">
                         通过图表、流程图和交互式元素，让复杂的技术概念变得易懂
                     </p>
                 </div>
@@ -158,8 +227,8 @@
                     <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
                         <span class="text-2xl">⚡</span>
                     </div>
-                    <h3 class="text-xl font-bold mb-4">快速获取</h3>
-                    <p class="text-gray-600">
+                    <h3 class="text-xl font-bold mb-4 theme-transition" style="color: var(--text-primary);">快速获取</h3>
+                    <p class="theme-transition" style="color: var(--text-secondary);">
                         一站式获取原文、解析报告和技术文档，节省您的宝贵时间
                     </p>
                 </div>
@@ -168,19 +237,19 @@
     </section>
 
     <!-- Footer -->
-    <footer class="bg-gray-900 text-white py-12">
+    <footer class="py-12 theme-transition" style="background-color: var(--bg-card); color: var(--text-primary);">
         <div class="container mx-auto px-6">
             <div class="text-center">
-                <h3 class="text-2xl font-bold mb-4">ArXiv Deep Reader</h3>
-                <p class="text-gray-400 mb-6">
+                <h3 class="text-2xl font-bold mb-4 theme-transition" style="color: var(--text-primary);">ArXiv Deep Reader</h3>
+                <p class="mb-6 theme-transition" style="color: var(--text-muted);">
                     持续关注AI前沿技术，为研究者和开发者提供最有价值的论文解析
                 </p>
-                <div class="flex justify-center space-x-6 text-sm text-gray-400">
+                <div class="flex justify-center space-x-6 text-sm theme-transition" style="color: var(--text-muted);">
                     <span>© 2025 ArXiv Deep Reader</span>
                     <span>•</span>
                     <span>深度解析 • 技术前沿 • 实用价值</span>
                     <span>•</span>
-                    <a href="https://soarxiv.org/" target="_blank" class="hover:text-white transition-colors">soarXiv.org</a>
+                    <a href="https://soarxiv.org/" target="_blank" class="hover:opacity-80 transition-opacity theme-transition" style="color: var(--text-secondary);">soarXiv.org</a>
                 </div>
             </div>
         </div>
@@ -276,7 +345,9 @@
                 const webPath = file.name.replace(/\\/g, '/');
                 return `
                     <a href="AI/${data.folder}/${webPath}" 
-                       class="inline-block download-btn bg-gray-50 hover:bg-gray-100 text-gray-600 text-center px-3 py-1.5 rounded-md text-xs font-medium mr-2 mb-2 transition-colors">
+                       class="inline-block download-btn text-center px-3 py-1.5 rounded-md text-xs font-medium mr-2 mb-2 transition-colors theme-transition" 
+                       style="background-color: var(--bg-secondary); color: var(--text-secondary);" 
+                       onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
                         ${file.icon} ${file.label}
                     </a>`;
             }).join('') : '';
@@ -285,21 +356,21 @@
             const analysisFile = data.files ? data.files.find(f => f.label === '深度解析') : null;
             
             return `
-                <div class="paper-card rounded-2xl p-8 card-hover">
+                <div class="paper-card rounded-2xl p-8 card-hover theme-transition">
                     <div class="flex items-start justify-between mb-6">
                         <div class="bg-${data.categoryColor}-100 text-${data.categoryColor}-800 px-3 py-1 rounded-full text-sm font-semibold">
                             ${data.category}
                         </div>
-                        <div class="text-gray-400 text-sm">
+                        <div class="text-sm theme-transition" style="color: var(--text-muted);">
                             ${paperId}
                         </div>
                     </div>
                     
-                    <h3 class="text-2xl font-bold mb-4 text-gray-900">
+                    <h3 class="text-2xl font-bold mb-4 theme-transition" style="color: var(--text-primary);">
                         ${data.title}
                     </h3>
                     
-                    <p class="text-gray-600 mb-6 leading-relaxed">
+                    <p class="mb-6 leading-relaxed theme-transition" style="color: var(--text-secondary);">
                         ${data.description}
                     </p>
                     
@@ -323,8 +394,44 @@
 
 
 
+        // Theme switching functionality
+        function initTheme() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeIcon = document.getElementById('theme-icon');
+            const body = document.body;
+            
+            // Check for saved theme preference or default to light mode
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            
+            if (savedTheme === 'dark') {
+                body.setAttribute('data-theme', 'dark');
+                themeIcon.textContent = '☀️';
+            } else {
+                body.removeAttribute('data-theme');
+                themeIcon.textContent = '🌙';
+            }
+            
+            // Theme toggle event listener
+            themeToggle.addEventListener('click', function() {
+                const currentTheme = body.getAttribute('data-theme');
+                
+                if (currentTheme === 'dark') {
+                    body.removeAttribute('data-theme');
+                    themeIcon.textContent = '🌙';
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    body.setAttribute('data-theme', 'dark');
+                    themeIcon.textContent = '☀️';
+                    localStorage.setItem('theme', 'dark');
+                }
+            });
+        }
+
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize theme
+            initTheme();
+            
             // Load metadata and papers
             loadMetadata();
 

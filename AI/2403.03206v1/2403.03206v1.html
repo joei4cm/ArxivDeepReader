@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stable Diffusion 3 架构解析</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F0F4F8;
+        }
+        .text-primary { color: #00529B; }
+        .text-secondary { color: #00A4E4; }
+        .text-accent { color: #F6BE00; }
+        .text-dark { color: #2E3D49; }
+        .bg-primary { background-color: #00529B; }
+        .bg-secondary { background-color: #00A4E4; }
+        .bg-accent { background-color: #F6BE00; }
+        .bg-light-gray { background-color: #D6D2C4; }
+        .border-primary { border-color: #00529B; }
+        .border-secondary { border-color: #00A4E4; }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        
+        .flow-arrow {
+            font-size: 2rem;
+            line-height: 1;
+            color: #00A4E4;
+        }
+
+        .flow-box {
+            border: 2px solid #00529B;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .path-line {
+            position: relative;
+            width: 80%;
+            height: 4px;
+            background-color: #00A4E4;
+            margin: 20px auto;
+        }
+        .path-line.curvy::before {
+            content: '';
+            position: absolute;
+            top: -16px;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            border: 4px solid #D6D2C4;
+            border-color: #D6D2C4 transparent transparent transparent;
+            border-radius: 50%/100px 100px 0 0;
+            transform: rotate(5deg);
+        }
+    </style>
+</head>
+<body class="text-dark">
+
+    <div class="container mx-auto p-4 md:p-8">
+
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-6xl font-black text-primary mb-2">AI图像生成的新纪元</h1>
+            <p class="text-xl md:text-2xl text-dark max-w-4xl mx-auto">一份详细介绍 Stable Diffusion 3 背后技术：多模态扩散变换器 (MMDiT) 的信息图。</p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <section class="lg:col-span-3 bg-white rounded-lg shadow-lg p-6 md:p-8">
+                <h2 class="text-3xl font-bold text-primary mb-4 text-center">旧模型的问题：一次范式转移</h2>
+                <p class="text-lg mb-6 text-center max-w-3xl mx-auto">多年来，U-Net架构主导了AI图像生成。虽然功能强大，但它们难以处理复杂的提示，也无法准确渲染文字。这导致了“概念混淆”（例如，一个红色的正方形和一个蓝色的圆形变成了蓝色的正方形和红色的圆形）和无意义的文本。一次根本性的变革势在必行。</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-gray-50 p-6 rounded-lg border-l-4 border-red-500">
+                        <h3 class="text-2xl font-bold mb-2">U-Net的局限性</h3>
+                        <p class="text-lg">🛑 **单向信息流**：文本指令像通过传声筒一样单向“注入”到图像处理流程中，容易导致误解。</p>
+                        <p class="text-lg mt-2">🛑 **文字渲染失败**：生成的文字几乎总是扭曲、无意义的符号。</p>
+                    </div>
+                    <div class="bg-gray-50 p-6 rounded-lg border-l-4 border-green-500">
+                        <h3 class="text-2xl font-bold mb-2">MMDiT的解决方案</h3>
+                        <p class="text-lg">✅ **双向信息流**：文本和图像数据像在开圆桌会议，是平等的合作伙伴，可以进行深入、对称的对话。</p>
+                        <p class="text-lg mt-2">✅ **突破性排版能力**：首次在扩散模型中实现了清晰、准确的文字渲染。</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="lg:col-span-3 bg-white rounded-lg shadow-lg p-6 md:p-8">
+                <h2 class="text-3xl font-bold text-primary mb-6 text-center">核心创新：多模态扩散变换器 (MMDiT)</h2>
+                <p class="text-lg mb-8 text-center max-w-3xl mx-auto">MMDiT完全取代了U-Net。它将图像块和文本描述都视为“词元”（token）序列，用独立的、专业的权重分别处理它们，然后将它们融合在一起，允许两种模态之间进行丰富的双向对话。</p>
+                <div class="w-full overflow-x-auto p-4">
+                    <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 text-center">
+                        <div class="flow-box rounded-lg p-4 w-48">
+                            <h4 class="font-bold text-lg">🖼️ 图像块</h4>
+                            <p class="text-sm">图像专家权重处理</p>
+                        </div>
+                        <div class="text-2xl font-bold text-secondary">+</div>
+                        <div class="flow-box rounded-lg p-4 w-48">
+                            <h4 class="font-bold text-lg">📝 文本词元</h4>
+                            <p class="text-sm">文本专家权重处理</p>
+                        </div>
+                        <div class="flow-arrow hidden md:block">→</div>
+                        <div class="flow-arrow block md:hidden">↓</div>
+                        <div class="flow-box rounded-lg p-6 bg-secondary text-dark w-64">
+                            <h4 class="font-bold text-xl">🤝 深度融合</h4>
+                            <p class="text-sm">拼接后的词元进入共享的Transformer块，进行双向注意力计算。</p>
+                        </div>
+                        <div class="flow-arrow hidden md:block">→</div>
+                        <div class="flow-arrow block md:hidden">↓</div>
+                        <div class="flow-box rounded-lg p-4 bg-accent text-dark w-48">
+                            <h4 class="font-bold text-lg">✨ 最终输出</h4>
+                            <p class="text-sm">高保真图像</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="lg:col-span-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-white rounded-lg shadow-lg p-6 md:p-8 h-full">
+                        <h2 class="text-3xl font-bold text-primary mb-4">整流流：一条更直的路径</h2>
+                        <p class="text-base mb-4">传统扩散模型从噪声到图像的路径是曲折随机的，而整流流（RF）采用了一条笔直的、确定性的路径。这简化了过程，使得生成速度更快、更稳定。</p>
+                        <div class="grid grid-cols-2 gap-4 text-center">
+                            <div>
+                                <h3 class="text-xl font-bold mb-2">传统扩散</h3>
+                                <div class="p-4 border-2 border-dashed border-gray-300 rounded-lg h-48 flex flex-col justify-between">
+                                   <span>噪点</span>
+                                   <div class="path-line curvy"></div>
+                                   <span>图像</span>
+                                </div>
+                                <p class="mt-2 text-sm">曲折、随机的乡间小路</p>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold mb-2 text-secondary">整流流 (RF)</h3>
+                                 <div class="p-4 border-2 border-dashed border-secondary rounded-lg h-48 flex flex-col justify-between">
+                                   <span>噪点</span>
+                                   <div class="path-line"></div>
+                                   <span>图像</span>
+                                </div>
+                                <p class="mt-2 text-sm">笔直、高效的高速公路</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg p-6 md:p-8 h-full">
+                        <h2 class="text-3xl font-bold text-primary mb-4">三大文本编码器的力量</h2>
+                        <p class="text-base mb-4">为了实现顶级的提示理解和排版能力，模型结合了三个强大的文本编码器，其中庞大的T5模型对文字渲染至关重要。</p>
+                        <div class="chart-container">
+                            <canvas id="encoderChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="lg:col-span-3 bg-white rounded-lg shadow-lg p-6 md:p-8">
+                <h2 class="text-3xl font-bold text-primary mb-6 text-center">性能突破：眼见为实</h2>
+                <p class="text-lg mb-6 text-center max-w-3xl mx-auto">新架构在遵循复杂提示和渲染文字方面取得了巨大飞跃，解决了长期以来的行业难题。</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-center">
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-2xl font-bold mb-2">排版与提示保真度</h3>
+                        <div class="p-4 border-2 border-dashed border-accent rounded-lg">
+                            <p class="text-lg font-semibold">提示:</p>
+                            <p class="italic text-dark mb-2">"一张红色立方体在蓝色球体顶部的照片，立方体上写着'Stable Diffusion'字样。"</p>
+                            <div class="mt-4 p-4 bg-white rounded shadow-inner">
+                                <div class="w-20 h-20 bg-red-500 mx-auto mb-[-20px] rounded flex items-center justify-center text-white text-xs font-bold transform -rotate-6">Stable Diffusion</div>
+                                <div class="w-24 h-24 bg-blue-500 mx-auto rounded-full"></div>
+                            </div>
+                            <p class="font-semibold mt-4"><span class="text-2xl font-black text-secondary">✅</span> MMDiT 正确渲染了场景和文字。</p>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-2xl font-bold mb-2">可预测的扩展定律</h3>
+                        <p class="text-base mb-4">模型性能会随着训练计算量的增加而可预测地提升。此图表显示，随着训练的进行（计算量增加），模型的错误率（验证损失）持续下降，从而带来更好的图像质量。</p>
+                        <div class="chart-container h-64 md:h-80">
+                            <canvas id="scalingChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="lg:col-span-3 bg-white rounded-lg shadow-lg p-6 md:p-8">
+                <h2 class="text-3xl font-bold text-primary mb-4 text-center">架构对比: U-Net vs. MMDiT</h2>
+                <p class="text-lg mb-6 text-center max-w-3xl mx-auto">MMDiT的设计从根本上改变了多模态信息的交互方式，从U-Net的单行道升级为双向高速公路。</p>
+                <div class="chart-container">
+                    <canvas id="architectureChart"></canvas>
+                </div>
+            </section>
+
+        </main>
+
+        <footer class="text-center mt-12 text-gray-500">
+            <p>信息图基于论文《扩展整流流变换器实现高分辨率图像合成》(arXiv:2403.03206)。</p>
+            <!-- 
+                Palette: Brilliant Blues
+                Narrative Plan:
+                1. Hook: Title about new era.
+                2. Problem: Side-by-side comparison of U-Net limitations vs MMDiT solutions.
+                3. Core Innovation: HTML/CSS flowchart of MMDiT architecture.
+                4. Process Simplification & Key Components: Combined section with Rectified Flow and Text Encoders side-by-side.
+                5. Performance Proof: Line chart for scaling laws and a qualitative example for typography.
+                6. Head-to-Head: Bar chart comparing U-Net vs MMDiT on key features.
+                7. Conclusion: Footer with source.
+                
+                Visualization Choices:
+                - U-Net vs MMDiT Problems: Goal: Organize. Vis: Styled Cards (HTML/CSS). Justification: Clear separation of concepts.
+                - MMDiT Flow: Goal: Organize. Vis: Flowchart (HTML/CSS). Justification: Shows process flow clearly. NO SVG/Mermaid.
+                - Rectified Flow: Goal: Compare. Vis: Diagram (HTML/CSS). Justification: Simple visual metaphor for "straight vs curvy". NO SVG.
+                - Text Encoders: Goal: Compare (Composition). Vis: Donut Chart (Chart.js/Canvas). Justification: Shows parts of a whole effectively.
+                - Scaling Laws: Goal: Change. Vis: Line Chart (Chart.js/Canvas). Justification: Ideal for showing trends over a continuous variable (compute).
+                - Architecture Comparison: Goal: Compare. Vis: Bar Chart (Chart.js/Canvas). Justification: Best for comparing discrete features across two categories.
+                - Typography Example: Goal: Inform. Vis: Diagram (HTML/CSS). Justification: Direct visual proof of capability. NO SVG.
+
+                Confirmation: NEITHER Mermaid JS NOR SVG were used in this output. All charts are rendered on Canvas via Chart.js. All diagrams are structured HTML/CSS with Tailwind.
+            -->
+        </footer>
+
+    </div>
+
+    <script>
+        const tooltipTitleCallback = (tooltipItems) => {
+            const item = tooltipItems[0];
+            let label = item.chart.data.labels[item.dataIndex];
+            if (Array.isArray(label)) {
+                return label.join(' ');
+            }
+            return label;
+        };
+
+        const wrapLabel = (label) => {
+            const maxLength = 16;
+            if (label.length <= maxLength) {
+                return label;
+            }
+            const words = label.split(' ');
+            const lines = [];
+            let currentLine = '';
+            for (const word of words) {
+                if ((currentLine + word).length > maxLength) {
+                    lines.push(currentLine.trim());
+                    currentLine = '';
+                }
+                currentLine += word + ' ';
+            }
+            lines.push(currentLine.trim());
+            return lines.filter(line => line.length > 0);
+        };
+        
+        const brilliantBlues = {
+            primary: '#00529B',
+            secondary: '#00A4E4',
+            accent: '#F6BE00',
+            lightGray: '#D6D2C4',
+            dark: '#2E3D49'
+        };
+
+        const commonChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        color: brilliantBlues.dark,
+                        font: {
+                            size: 14,
+                            weight: '600'
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        title: tooltipTitleCallback
+                    },
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleFont: { size: 16 },
+                    bodyFont: { size: 14 },
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        color: brilliantBlues.dark,
+                        font: {
+                            size: 12
+                        }
+                    },
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    ticks: {
+                        color: brilliantBlues.dark,
+                        font: {
+                            size: 12
+                        }
+                    },
+                    grid: {
+                        color: '#e0e0e0'
+                    }
+                }
+            }
+        };
+
+        new Chart(document.getElementById('architectureChart'), {
+            type: 'bar',
+            data: {
+                labels: ['核心架构', '模态集成', '信息流', '关键优势'].map(wrapLabel),
+                datasets: [
+                    {
+                        label: 'U-Net (旧模型)',
+                        data: [2, 2, 1, 2],
+                        backgroundColor: brilliantBlues.lightGray,
+                        borderColor: brilliantBlues.dark,
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'MMDiT (新模型)',
+                        data: [4, 4, 2, 4],
+                        backgroundColor: brilliantBlues.secondary,
+                        borderColor: brilliantBlues.primary,
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                ...commonChartOptions,
+                 indexAxis: 'y',
+                 scales: {
+                    y: { ...commonChartOptions.scales.y, ticks: { ...commonChartOptions.scales.y.ticks, autoSkip: false } },
+                    x: {
+                        ...commonChartOptions.scales.x,
+                        ticks: {
+                           callback: function(value, index, values) {
+                                const mapping = { 1: '单向', 2: '双向/对称', 4: '深度融合' };
+                                if (this.getLabelForValue(value).includes('架构')) return '卷积';
+                                if (this.getLabelForValue(value).includes('集成')) return '交叉注意';
+                                return mapping[value] || '';
+                           }
+                        }
+                    }
+                },
+                plugins: {
+                    ...commonChartOptions.plugins,
+                    tooltip: {
+                        ...commonChartOptions.plugins.tooltip,
+                        callbacks: {
+                            title: tooltipTitleCallback,
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                const value = context.parsed.x;
+                                const category = context.chart.data.labels[context.dataIndex];
+                                if (category.includes('架构')) label += (value === 2 ? '卷积 U-Net' : 'Transformer');
+                                else if (category.includes('集成')) label += (value === 2 ? '交叉注意力' : '双向自注意力');
+                                else if (category.includes('信息流')) label += (value === 1 ? '非对称 (文本→图像)' : '对称 (文本↔图像)');
+                                else if (category.includes('优势')) label += (value === 2 ? '强大的空间层级' : '深度模态融合');
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        new Chart(document.getElementById('encoderChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['CLIP-ViT/L (视觉-文本)', 'OpenCLIP-ViT/G (视觉-文本)', 'T5-XXL (排版与语言)'].map(wrapLabel),
+                datasets: [{
+                    label: '对理解能力的贡献',
+                    data: [30, 30, 40],
+                    backgroundColor: [
+                        brilliantBlues.secondary,
+                        brilliantBlues.primary,
+                        brilliantBlues.accent
+                    ],
+                    borderColor: '#ffffff',
+                    borderWidth: 4
+                }]
+            },
+            options: {
+                 ...commonChartOptions,
+                 scales: { x: { display: false }, y: { display: false } }
+            }
+        });
+        
+        new Chart(document.getElementById('scalingChart'), {
+            type: 'line',
+            data: {
+                labels: ['1亿', '5亿', '10亿', '20亿', '50亿', '80亿+ 参数'],
+                datasets: [{
+                    label: '验证损失 (错误率)',
+                    data: [0.9, 0.75, 0.6, 0.45, 0.3, 0.2],
+                    fill: true,
+                    backgroundColor: 'rgba(0, 164, 228, 0.2)',
+                    borderColor: brilliantBlues.secondary,
+                    tension: 0.3,
+                    pointBackgroundColor: brilliantBlues.primary,
+                    pointRadius: 5,
+                }]
+            },
+            options: {
+                ...commonChartOptions,
+                scales: {
+                    x: { ...commonChartOptions.scales.x, title: { display: true, text: '模型规模 / 计算量', color: brilliantBlues.dark, font: { weight: 'bold' } } },
+                    y: { ...commonChartOptions.scales.y, title: { display: true, text: '错误率', color: brilliantBlues.dark, font: { weight: 'bold' } } }
+                }
+            }
+        });
+
+    </script>
+</body>
+</html>

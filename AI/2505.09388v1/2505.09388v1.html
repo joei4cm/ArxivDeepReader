@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qwen3技术报告：信息图表</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', 'Inter', sans-serif;
+            background-color: #121212;
+            color: #E0E0E0;
+        }
+        .card {
+            background-color: rgba(30, 30, 30, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 50vh;
+        }
+        .flow-arrow {
+            position: relative;
+            width: 100%;
+            height: 2px;
+            background-color: #00D1FF;
+            margin: 1rem 0;
+        }
+        .flow-arrow::after {
+            content: '▶';
+            position: absolute;
+            right: -5px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #00D1FF;
+            font-size: 1.2rem;
+        }
+        .gradient-text {
+            background: linear-gradient(90deg, #00D1FF, #FF007A);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container mx-auto p-4 md:p-8">
+
+        <header class="text-center my-12">
+            <h1 class="text-5xl md:text-7xl font-black gradient-text">Qwen3</h1>
+            <p class="text-xl md:text-2xl text-gray-300 mt-4">统一速度与智能的单一框架</p>
+        </header>
+
+        <main class="space-y-16">
+            <section id="model-family" class="scroll-mt-20">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white">一个模型家族，满足所有需求</h2>
+                    <p class="text-lg text-gray-400 mt-2 max-w-3xl mx-auto">Qwen3提供从轻量级边缘设备到强大云服务器的全方位模型，涵盖密集型（Dense）和高效的混合专家（MoE）架构。</p>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+                    <div class="lg:col-span-2 card rounded-xl shadow-lg p-6">
+                        <div class="chart-container h-96 max-h-[60vh]">
+                            <canvas id="modelFamilyChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="space-y-4 text-center">
+                        <div class="card rounded-xl shadow-lg p-6">
+                            <p class="text-gray-400 text-lg">训练数据规模</p>
+                            <p class="text-4xl font-bold text-white">36万亿 Tokens</p>
+                        </div>
+                        <div class="card rounded-xl shadow-lg p-6">
+                            <p class="text-gray-400 text-lg">多语言能力</p>
+                            <p class="text-4xl font-bold text-white">119种 语言</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="dual-mode" class="scroll-mt-20">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white">核心创新：双模一体</h2>
+                    <p class="text-lg text-gray-400 mt-2 max-w-3xl mx-auto">Qwen3引入革命性的双模系统，根据用户查询的复杂性动态调整计算策略，无需在不同模型间切换。</p>
+                </div>
+                <div class="card rounded-xl shadow-lg p-6 md:p-8">
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-6 items-center text-center">
+                        <div class="md:col-span-2">
+                            <div class="p-4 border border-dashed border-gray-500 rounded-lg">
+                                <p class="font-semibold text-white">用户提示</p>
+                                <p class="text-sm text-gray-400">“今天天气怎么样？” 或 “解决这个复杂的数学题。”</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-center items-center">
+                            <div class="flow-arrow hidden md:block"></div>
+                            <div class="text-2xl md:hidden">▼</div>
+                        </div>
+                        <div class="md:col-span-2 grid grid-cols-1 gap-6">
+                            <div class="p-4 bg-[#0047FF]/20 rounded-lg border border-[#0047FF]">
+                                <h3 class="font-bold text-lg text-white">非思考模式</h3>
+                                <p class="text-gray-300">用于简单、快速的查询。提供即时、由上下文驱动的答案。</p>
+                            </div>
+                            <div class="p-4 bg-[#FF007A]/20 rounded-lg border border-[#FF007A]">
+                                <h3 class="font-bold text-lg text-white">思考模式</h3>
+                                <p class="text-gray-300">用于复杂任务。在给出答案前，进行内部“思维链”推理。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="moe-efficiency" class="scroll-mt-20">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white">效率引擎：混合专家 (MoE) 架构</h2>
+                    <p class="text-lg text-gray-400 mt-2 max-w-3xl mx-auto">旗舰模型 Qwen3-235B-A22B 利用MoE架构，以远低于密集模型的计算成本，实现卓越性能。</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div class="card rounded-xl shadow-lg p-6">
+                        <div class="chart-container h-80">
+                            <canvas id="moeChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="text-center md:text-left space-y-4">
+                        <div class="card rounded-xl shadow-lg p-6">
+                            <p class="text-gray-400 text-lg">总参数量</p>
+                            <p class="text-5xl font-black text-white">235B</p>
+                        </div>
+                        <div class="card rounded-xl shadow-lg p-6">
+                            <p class="text-gray-400 text-lg">每Token激活参数</p>
+                            <p class="text-5xl font-black gradient-text">22B</p>
+                            <p class="text-white mt-2 font-semibold">每次任务仅使用约9%的模型参数！</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="thinking-budget" class="scroll-mt-20">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white">精细化控制：思考预算机制</h2>
+                    <p class="text-lg text-gray-400 mt-2 max-w-3xl mx-auto">Qwen3允许用户通过“思考预算”动态控制推理深度，在延迟和性能之间实现完美平衡。</p>
+                </div>
+                <div class="card rounded-xl shadow-lg p-8">
+                    <div class="relative w-full h-4 bg-gray-700 rounded-full">
+                         <div class="absolute top-0 left-0 h-4 rounded-full bg-gradient-to-r from-cyan-500 to-fuchsia-500 w-full"></div>
+                    </div>
+                    <div class="flex justify-between text-center mt-4">
+                        <div class="w-1/3">
+                            <p class="font-bold text-white">低预算</p>
+                            <p class="text-sm text-gray-400">⚡️ 快速响应</p>
+                            <p class="text-sm text-gray-400">适用于简单任务</p>
+                        </div>
+                        <div class="w-1/3">
+                            <p class="font-bold text-white">中等预算</p>
+                            <p class="text-sm text-gray-400">均衡性能</p>
+                        </div>
+                        <div class="w-1/3">
+                            <p class="font-bold text-white">高预算</p>
+                            <p class="text-sm text-gray-400">🧠 深度推理</p>
+                            <p class="text-sm text-gray-400">适用于复杂问题</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="distillation" class="scroll-mt-20">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white">“模型工厂”：强弱模型蒸馏</h2>
+                    <p class="text-lg text-gray-400 mt-2 max-w-3xl mx-auto">Qwen3的小型模型通过高效的两阶段蒸馏过程创建，以极低的成本继承了旗舰模型的强大能力。</p>
+                </div>
+                <div class="card rounded-xl shadow-lg p-6 md:p-8 space-y-8">
+                     <div class="flex flex-col md:flex-row items-center gap-4">
+                        <div class="p-4 bg-[#0047FF]/20 rounded-lg border border-[#0047FF] text-center w-full md:w-2/5">
+                            <h3 class="font-bold text-lg text-white">👨‍🏫 教师模型</h3>
+                            <p class="text-gray-300">Qwen3-235B 或 32B</p>
+                        </div>
+                        <div class="flow-arrow w-full md:w-1/5"></div>
+                        <div class="p-4 bg-[#00D1FF]/20 rounded-lg border border-[#00D1FF] text-center w-full md:w-2/5">
+                            <h3 class="font-bold text-lg text-white">👨‍🎓 学生模型</h3>
+                            <p class="text-gray-300">Qwen3小型变体</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="p-6 rounded-lg bg-gray-800">
+                            <h4 class="font-bold text-xl text-white">阶段一：离策略蒸馏</h4>
+                            <p class="text-gray-400 mt-2">学生模型通过学习教师模型生成的输出来掌握基础推理和模式切换能力。</p>
+                        </div>
+                        <div class="p-6 rounded-lg bg-gray-800">
+                            <h4 class="font-bold text-xl text-white">阶段二：在策略蒸馏</h4>
+                            <p class="text-gray-400 mt-2">学生模型生成自己的响应，并与教师的逻辑对齐，优化其推理路径。此方法的<span class="font-bold text-cyan-400">效率是传统强化学习的10倍</span>。</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="performance" class="scroll-mt-20">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white">性能对决</h2>
+                    <p class="text-lg text-gray-400 mt-2 max-w-3xl mx-auto">无论是在推理模式还是通用模式下，Qwen3在多个基准测试中都持续优于此前的业界顶尖模型。</p>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="card rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-center text-white mb-4">思考模式 vs. 推理模型 (AIME'24 数学)</h3>
+                        <div class="chart-container">
+                            <canvas id="reasoningChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-center text-white mb-4">非思考模式 vs. 通用模型 (MT-Bench 对话)</h3>
+                        <div class="chart-container">
+                            <canvas id="generalChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="alignment-tax" class="scroll-mt-20">
+                 <div class="text-center mb-8">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white">“对齐税”：一个根本性的权衡</h2>
+                    <p class="text-lg text-gray-400 mt-2 max-w-3xl mx-auto">Qwen3的开发揭示了一个关键洞察：为通用性和指令遵循进行优化，可能会略微降低模型在高度专业化推理任务上的峰值性能。</p>
+                </div>
+                <div class="card rounded-xl shadow-lg p-6">
+                     <div class="chart-container h-96">
+                        <canvas id="alignmentTaxChart"></canvas>
+                    </div>
+                    <p class="text-center text-gray-400 mt-4">这是一个有意识的设计选择，旨在平衡顶尖推理能力与广泛的可用性，以创造一个更通用、更可靠的整体模型。</p>
+                </div>
+            </section>
+            
+        </main>
+
+        <footer class="text-center mt-16 py-8 border-t border-gray-800">
+            <p class="text-gray-500">信息图表根据Qwen3技术报告 (arXiv:2505.09388) 分析制作。</p>
+        </footer>
+
+    </div>
+
+    <script>
+        const energeticPlayful = {
+            deepBlue: '#0047FF',
+            cyan: '#00D1FF',
+            magenta: '#FF007A',
+            white: '#FFFFFF',
+            lightGray: '#E0E0E0',
+            darkGray: '#333333'
+        };
+
+        const chartTextColor = energeticPlayful.lightGray;
+
+        function wrapLabel(str, maxWidth) {
+            if (str.length <= maxWidth) {
+                return str;
+            }
+            const lines = [];
+            let currentLine = '';
+            for (let i = 0; i < str.length; i++) {
+                currentLine += str[i];
+                if (currentLine.length >= maxWidth) {
+                    lines.push(currentLine);
+                    currentLine = '';
+                }
+            }
+            if (currentLine) {
+                lines.push(currentLine);
+            }
+            return lines;
+        }
+
+        const tooltipTitleCallback = (tooltipItems) => {
+            const item = tooltipItems[0];
+            let label = item.chart.data.labels[item.dataIndex];
+            if (Array.isArray(label)) {
+              return label.join('');
+            } else {
+              return label;
+            }
+        };
+        
+        const defaultChartOptions = {
+            maintainAspectRatio: false,
+            responsive: true,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: chartTextColor,
+                        font: {
+                            size: 14,
+                            family: "'Noto Sans SC', 'Inter', sans-serif"
+                        }
+                    }
+                },
+                tooltip: {
+                    titleFont: { family: "'Noto Sans SC', 'Inter', sans-serif" },
+                    bodyFont: { family: "'Noto Sans SC', 'Inter', sans-serif" },
+                    callbacks: {
+                        title: tooltipTitleCallback
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { 
+                        color: chartTextColor,
+                        font: { size: 12, family: "'Noto Sans SC', 'Inter', sans-serif" }
+                    },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                },
+                x: {
+                    ticks: { 
+                        color: chartTextColor,
+                        font: { size: 12, family: "'Noto Sans SC', 'Inter', sans-serif" }
+                    },
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                }
+            }
+        };
+
+        new Chart(document.getElementById('modelFamilyChart'), {
+            type: 'bar',
+            data: {
+                labels: ['0.6B', '1.7B', '4B', '8B', '14B', '30B (MoE)', '32B', '235B (MoE)'],
+                datasets: [{
+                    label: '总参数量 (B)',
+                    data: [0.6, 1.7, 4, 8, 14, 30, 32, 235],
+                    backgroundColor: [
+                        energeticPlayful.deepBlue, energeticPlayful.deepBlue, energeticPlayful.deepBlue, energeticPlayful.deepBlue, energeticPlayful.deepBlue,
+                        energeticPlayful.magenta, 
+                        energeticPlayful.deepBlue,
+                        energeticPlayful.magenta
+                    ],
+                    borderColor: energeticPlayful.cyan,
+                    borderWidth: 1
+                }]
+            },
+            options: { ...defaultChartOptions, indexAxis: 'y' }
+        });
+
+        new Chart(document.getElementById('moeChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['激活参数 (22B)', '非激活参数 (213B)'],
+                datasets: [{
+                    data: [22, 213],
+                    backgroundColor: [energeticPlayful.magenta, energeticPlayful.darkGray],
+                    borderColor: energeticPlayful.cyan,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: chartTextColor, font: { size: 14, family: "'Noto Sans SC', 'Inter', sans-serif" } }
+                    },
+                    tooltip: {
+                        titleFont: { family: "'Noto Sans SC', 'Inter', sans-serif" },
+                        bodyFont: { family: "'Noto Sans SC', 'Inter', sans-serif" },
+                        callbacks: {
+                            title: tooltipTitleCallback
+                        }
+                    }
+                }
+            }
+        });
+
+        new Chart(document.getElementById('reasoningChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Qwen3-235B', 'OpenAI-o1', 'Grok-3-Beta', 'Gemini2.5-Pro', 'DeepSeek-R1'],
+                datasets: [{
+                    label: "AIME'24 分数",
+                    data: [85.7, 85.7, 82.1, 82.1, 78.6],
+                    backgroundColor: [energeticPlayful.magenta, energeticPlayful.deepBlue, energeticPlayful.deepBlue, energeticPlayful.deepBlue, energeticPlayful.deepBlue],
+                    borderColor: energeticPlayful.cyan,
+                    borderWidth: 1
+                }]
+            },
+            options: defaultChartOptions
+        });
+
+        new Chart(document.getElementById('generalChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Qwen3-235B', 'GPT-4o', 'LLaMA-4', 'DeepSeek-V3', 'Qwen2.5-72B'],
+                datasets: [{
+                    label: 'MT-Bench 分数',
+                    data: [9.60, 9.55, 9.54, 9.49, 9.42],
+                    backgroundColor: [energeticPlayful.magenta, energeticPlayful.deepBlue, energeticPlayful.deepBlue, energeticPlayful.deepBlue, energeticPlayful.deepBlue],
+                    borderColor: energeticPlayful.cyan,
+                    borderWidth: 1
+                }]
+            },
+            options: { ...defaultChartOptions, scales: { ...defaultChartOptions.scales, y: { ...defaultChartOptions.scales.y, min: 9.0 } } }
+        });
+
+        new Chart(document.getElementById('alignmentTaxChart'), {
+            type: 'line',
+            data: {
+                labels: ['基础模型', '阶段3 (融合)', '阶段4 (强化学习)'],
+                datasets: [{
+                    label: '通用能力 (如 MT-Bench)',
+                    data: [9.3, 9.5, 9.6],
+                    borderColor: energeticPlayful.cyan,
+                    backgroundColor: `${energeticPlayful.cyan}33`,
+                    fill: true,
+                    tension: 0.1
+                }, {
+                    label: '峰值推理能力 (如 AIME\'24)',
+                    data: [86.5, 86.0, 85.7],
+                    borderColor: energeticPlayful.magenta,
+                    backgroundColor: `${energeticPlayful.magenta}33`,
+                    fill: true,
+                    tension: 0.1
+                }]
+            },
+            options: defaultChartOptions
+        });
+    </script>
+</body>
+</html>
