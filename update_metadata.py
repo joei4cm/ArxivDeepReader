@@ -24,9 +24,18 @@ class MetadataExtractor:
         self.paper_metadata = {}
         
     def extract_paper_id(self, folder_name: str) -> Optional[str]:
-        """Extract paper ID from folder name (e.g., '2412.19255v2' -> '2412.19255')"""
+        """Extract paper ID from folder name (e.g., '2412.19255v2' -> '2412.19255' or 'Kimi-K2' -> 'Kimi-K2')"""
+        # First try to match standard ArXiv format
         match = re.search(r'(\d{4}\.\d{5})', folder_name)
-        return match.group(1) if match else None
+        if match:
+            return match.group(1)
+        
+        # For non-standard formats (like Kimi-K2), use the folder name directly
+        # but only if it contains valid characters and is not empty
+        if folder_name and re.match(r'^[a-zA-Z0-9_-]+$', folder_name):
+            return folder_name
+        
+        return None
     
     def extract_url(self, html_path: Path, soup: BeautifulSoup) -> Optional[str]:
         """Extract URL from paper ID or HTML content"""
@@ -133,8 +142,12 @@ class MetadataExtractor:
         content_lower = content_text.lower()
         title_lower = title.lower()
         
+        # Model comparison and analysis (for papers like Kimi-K2 vs DeepSeek)
+        if any(keyword in content_lower for keyword in ['vs', '对比', 'comparison', '比较', 'kimi', 'deepseek', 'moe']):
+            return ('模型架构', 'indigo', ['MoE架构', '智能体', '模型对比'], ['purple', 'blue', 'green'], 'from-indigo-600 to-purple-600')
+        
         # KV Cache related
-        if any(keyword in content_lower for keyword in ['kv cache', 'kv缓存', 'cache', '缓存', 'memory', 'attention']):
+        elif any(keyword in content_lower for keyword in ['kv cache', 'kv缓存', 'cache', '缓存', 'memory', 'attention']):
             return ('KV缓存优化', 'blue', ['架构创新', '内存优化', '性能提升'], ['purple', 'green', 'orange'], 'from-blue-600 to-purple-600')
         
         # Multi-token prediction
@@ -191,6 +204,10 @@ class MetadataExtractor:
                 print(f"Skipping folder '{folder.name}' - no valid paper ID found")
                 continue
             
+            # For non-ArXiv papers, use folder name as paper_id
+            if not re.match(r'\d{4}\.\d{5}', paper_id):
+                paper_id = folder.name
+            
             # Look for HTML file
             html_files = list(folder.glob('*.html'))
             if not html_files:
@@ -228,6 +245,12 @@ class MetadataExtractor:
                 return {"type": "model_analysis", "priority": 2, "icon": "🧠", "label": "模型分析"}
             else:
                 return {"type": "analysis", "priority": 1, "icon": "📖", "label": "深度解析"}
+        elif '对比' in name_lower or 'comparison' in name_lower or 'vs' in name_lower:
+            return {"type": "comparison", "priority": 3, "icon": "⚖️", "label": "对比分析"}
+        elif 'tech_report' in name_lower or 'technical' in name_lower:
+            return {"type": "original", "priority": 2, "icon": "📄", "label": "技术报告"}
+        elif 'design' in name_lower and 'analysis' in name_lower:
+            return {"type": "analysis_pdf", "priority": 2, "icon": "📊", "label": "架构分析"}
         elif 'report' in name_lower or '报告' in name_lower:
             return {"type": "report", "priority": 2, "icon": "📊", "label": "研究报告"}
         elif 'analysis' in name_lower or '分析' in name_lower:

@@ -101,8 +101,8 @@
                 </div>
                 <div class="flex items-center space-x-4">
                     <nav class="hidden md:flex space-x-8">
-                        <a href="#papers" class="theme-transition hover:opacity-80" style="color: var(--text-secondary);">论文库</a>
-                        <a href="#features" class="theme-transition hover:opacity-80" style="color: var(--text-secondary);">特色功能</a>
+                        <a href="#hero" class="theme-transition hover:opacity-80" style="color: var(--text-secondary);">首页</a>
+                        <a href="papers.html" class="theme-transition hover:opacity-80" style="color: var(--text-secondary);">论文库</a>
                         <a href="https://soarxiv.org/" target="_blank" class="theme-transition hover:opacity-80" style="color: var(--text-secondary);">soarXiv.org</a>
                     </nav>
                     <button id="theme-toggle" class="p-2 rounded-lg theme-transition hover:opacity-80" style="background-color: var(--bg-secondary); color: var(--text-primary);" title="切换主题">
@@ -303,7 +303,7 @@
             if (documentsCountEl) documentsCountEl.textContent = statisticsData.totalDocuments;
         }
 
-        // Generate paper cards from metadata
+        // Generate paper cards from metadata (only show first 4 on homepage)
         function generatePaperCards() {
             const papersContainer = document.getElementById('papers-container');
             const loadingIndicator = document.getElementById('loading');
@@ -324,8 +324,22 @@
             // Hide no papers message
             if (noPapersMessage) noPapersMessage.classList.add('hidden');
             
+            // Only show first 4 papers on homepage
+            const displayPapers = paperIds.slice(0, 4);
+            
             // Generate cards
-            papersContainer.innerHTML = paperIds.map(paperId => createPaperCard(paperId, paperMetadata[paperId])).join('');
+            papersContainer.innerHTML = displayPapers.map(paperId => createPaperCard(paperId, paperMetadata[paperId])).join('');
+            
+            // Add "View More" button if there are more than 4 papers
+            if (paperIds.length > 4) {
+                papersContainer.innerHTML += `
+                    <div class="col-span-full flex justify-center mt-8">
+                        <a href="papers.html" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg font-semibold hover:opacity-90 transition-all duration-200 text-lg">
+                            📚 查看全部论文 (${paperIds.length}篇)
+                        </a>
+                    </div>`;
+            }
+            
             papersContainer.classList.remove('hidden');
         }
 

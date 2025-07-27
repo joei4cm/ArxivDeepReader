@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>论文库 - ArXiv Deep Reader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-card: #ffffff;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --border-color: #e5e7eb;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        [data-theme="dark"] {
+            --bg-primary: #111827;
+            --bg-secondary: #1f2937;
+            --bg-card: #374151;
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --text-muted: #9ca3af;
+            --border-color: #4b5563;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+        
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+        }
+        
+        .theme-transition {
+            transition: all 0.3s ease;
+        }
+        
+        .paper-row {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .paper-row:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+SC:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="theme-transition">
+    <!-- Navigation Header -->
+    <header class="theme-transition sticky top-0 z-50" style="background-color: var(--bg-card); box-shadow: var(--shadow);">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="flex items-center space-x-4">
+                        <img src="logo.svg" alt="ArXiv Deep Reader Logo" class="w-10 h-10">
+                        <h1 class="text-2xl font-bold" style="color: var(--text-primary);">ArXiv Deep Reader</h1>
+                    </a>
+                    <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">论文库</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <nav class="hidden md:flex space-x-8">
+                        <a href="index.html" class="theme-transition hover:opacity-80" style="color: var(--text-secondary);">首页</a>
+                        <a href="#papers" class="theme-transition hover:opacity-80" style="color: var(--text-secondary);">论文库</a>
+                        <a href="https://soarxiv.org/" target="_blank" class="theme-transition hover:opacity-80" style="color: var(--text-secondary);">soarXiv.org</a>
+                    </nav>
+                    <button id="theme-toggle" class="p-2 rounded-lg theme-transition hover:opacity-80" style="background-color: var(--bg-secondary); color: var(--text-primary);" title="切换主题">
+                        <span id="theme-icon">🌙</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="gradient-bg text-white py-16">
+        <div class="container mx-auto px-6">
+            <div class="text-center">
+                <h1 class="text-4xl md:text-6xl font-black mb-6 leading-tight">
+                    📚 论文库
+                </h1>
+                <p class="text-xl md:text-2xl font-light mb-8 max-w-3xl mx-auto opacity-90">
+                    探索所有精选的AI论文深度解析
+                </p>
+                <div class="flex justify-center">
+                    <div id="total-papers-badge" class="bg-white bg-opacity-20 px-6 py-3 rounded-full text-lg font-semibold">
+                        共 <span id="total-papers-count">0</span> 篇论文
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Papers Table Section -->
+    <section id="papers" class="py-20 theme-transition" style="background-color: var(--bg-secondary);">
+        <div class="container mx-auto px-6">
+            <!-- Loading indicator -->
+            <div id="loading" class="text-center py-12">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <p class="mt-4 text-gray-600">正在加载论文数据...</p>
+            </div>
+
+            <!-- Papers Table -->
+            <div id="papers-table" class="hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full table-fixed">
+                        <thead>
+                            <tr class="theme-transition" style="background-color: var(--bg-card); border-bottom: 2px solid var(--border-color);">
+                                <th class="px-6 py-4 text-left font-semibold" style="color: var(--text-primary); width: 45%;">论文信息</th>
+                                <th class="px-6 py-4 text-left font-semibold" style="color: var(--text-primary); width: 15%;">分类</th>
+                                <th class="px-6 py-4 text-left font-semibold" style="color: var(--text-primary); width: 20%;">标签</th>
+                                <th class="px-6 py-4 text-center font-semibold" style="color: var(--text-primary); width: 20%;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="papers-tbody">
+                            <!-- Papers will be dynamically generated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- No papers found message -->
+            <div id="no-papers" class="text-center py-12 hidden">
+                <div class="text-6xl mb-4">📚</div>
+                <h3 class="text-2xl font-bold mb-4" style="color: var(--text-primary);">暂无论文</h3>
+                <p style="color: var(--text-secondary);">请在 AI 目录下添加论文文件夹</p>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Global variables
+        let paperMetadata = {};
+        let statisticsData = {};
+
+        // Load metadata from meta.json
+        async function loadMetadata() {
+            try {
+                const response = await fetch('meta.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                paperMetadata = data.papers || {};
+                statisticsData = data.statistics || { totalPapers: 0, totalDocuments: 0 };
+                
+                // Update UI
+                updateStatistics();
+                generatePapersTable();
+                
+                console.log('Metadata loaded successfully:', data);
+                return true;
+            } catch (error) {
+                console.error('Failed to load metadata:', error);
+                showError();
+                return false;
+            }
+        }
+
+        // Update statistics in the UI
+        function updateStatistics() {
+            const totalPapersEl = document.getElementById('total-papers-count');
+            if (totalPapersEl) totalPapersEl.textContent = statisticsData.totalPapers;
+        }
+
+        // Show error message
+        function showError() {
+            const loadingIndicator = document.getElementById('loading');
+            const noPapersMessage = document.getElementById('no-papers');
+            
+            if (loadingIndicator) loadingIndicator.classList.add('hidden');
+            if (noPapersMessage) {
+                noPapersMessage.classList.remove('hidden');
+                noPapersMessage.innerHTML = `
+                    <div class="text-6xl mb-4">❌</div>
+                    <h3 class="text-2xl font-bold mb-4 text-red-600">加载失败</h3>
+                    <p class="text-gray-600">无法加载论文数据，请检查meta.json文件</p>
+                `;
+            }
+        }
+
+        // Generate papers table
+        function generatePapersTable() {
+            const papersTable = document.getElementById('papers-table');
+            const papersTbody = document.getElementById('papers-tbody');
+            const loadingIndicator = document.getElementById('loading');
+            const noPapersMessage = document.getElementById('no-papers');
+            
+            if (!papersTbody) return;
+            
+            // Hide loading indicator
+            if (loadingIndicator) loadingIndicator.classList.add('hidden');
+            
+            const paperIds = Object.keys(paperMetadata);
+            
+            if (paperIds.length === 0) {
+                if (noPapersMessage) noPapersMessage.classList.remove('hidden');
+                return;
+            }
+            
+            // Hide no papers message
+            if (noPapersMessage) noPapersMessage.classList.add('hidden');
+            
+            // Generate table rows
+            papersTbody.innerHTML = paperIds.map(paperId => createPaperRow(paperId, paperMetadata[paperId])).join('');
+            
+            // Show table
+            if (papersTable) papersTable.classList.remove('hidden');
+        }
+
+        // Create paper table row
+        function createPaperRow(paperId, data) {
+            if (!data) return '';
+            
+            // Create tags HTML
+            const tagsHtml = data.tags.map((tag, index) => {
+                const color = data.tagColors && data.tagColors[index] ? data.tagColors[index] : 'gray';
+                return `<span class="bg-${color}-100 text-${color}-800 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1 inline-block">${tag}</span>`;
+            }).join('');
+            
+            // Find main analysis file
+            const analysisFile = data.files ? data.files.find(f => f.label === '深度解析') : null;
+            
+            return `
+                <tr class="paper-row theme-transition">
+                    <td class="px-6 py-6">
+                        <div class="flex items-start space-x-4">
+                            <div class="flex-shrink-0">
+                                <div class="w-12 h-12 bg-gradient-to-r ${data.gradient} rounded-lg flex items-center justify-center text-white font-bold text-lg">
+                                    ${paperId.slice(-2)}
+                                </div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-lg font-semibold mb-2 theme-transition" style="color: var(--text-primary);">
+                                    ${data.title}
+                                </h3>
+                                <p class="text-sm mb-2 theme-transition" style="color: var(--text-secondary);">
+                                    ${data.description.length > 120 ? data.description.substring(0, 120) + '...' : data.description}
+                                </p>
+                                <div class="text-xs theme-transition" style="color: var(--text-muted);">
+                                    论文ID: ${paperId}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-6">
+                        <span class="bg-${data.categoryColor}-100 text-${data.categoryColor}-800 px-3 py-1 rounded-full text-sm font-semibold">
+                            ${data.category}
+                        </span>
+                    </td>
+                    <td class="px-6 py-6">
+                        <div class="flex flex-wrap">
+                            ${tagsHtml}
+                        </div>
+                    </td>
+                    <td class="px-6 py-6">
+                        <div class="flex flex-col space-y-2">
+                            ${analysisFile ? `
+                            <a href="AI/${data.folder}/${analysisFile.name.replace(/\\/g, '/')}" 
+                               class="bg-gradient-to-r ${data.gradient} text-white text-center px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-all duration-200">
+                                📖 深度解析
+                            </a>` : ''}
+                            
+                            ${data.arxivUrl ? `
+                            <a href="${data.arxivUrl}" target="_blank"
+                               class="bg-gradient-to-r from-red-500 to-orange-500 text-white text-center px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-all duration-200">
+                                📄 查看原文
+                            </a>` : data.url ? `
+                            <a href="${data.url}" target="_blank"
+                               class="bg-gradient-to-r from-red-500 to-orange-500 text-white text-center px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-all duration-200">
+                                📄 查看原文
+                            </a>` : `
+                            <div class="bg-gray-300 text-gray-600 text-center px-4 py-2 rounded-lg text-sm font-semibold cursor-not-allowed">
+                                📄 原文待补充
+                            </div>`}
+                            
+                            ${data.files && data.files.filter(f => f.label !== '深度解析').length > 0 ? `
+                            <div class="relative">
+                                <select class="w-full bg-gradient-to-r from-gray-500 to-gray-600 text-white text-center px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer hover:opacity-90 transition-all duration-200 appearance-none" 
+                                         onchange="handleDocumentAction(this, '${paperId}')">
+                                     <option value="" class="bg-white text-gray-800">📚 更多</option>
+                                    ${data.files.filter(f => f.label !== '深度解析').map(file => 
+                                        `<option value="AI/${data.folder}/${file.name.replace(/\\/g, '/')}" class="bg-white text-gray-800">${file.label || '📄 ' + file.name.split('/').pop()}</option>`
+                                    ).join('')}
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </div>
+                            </div>` : ''}
+                        </div>
+                    </td>
+                </tr>`;
+        }
+
+        // Theme switching functionality
+        function initTheme() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeIcon = document.getElementById('theme-icon');
+            const body = document.body;
+            
+            // Check for saved theme preference or default to light mode
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            
+            if (savedTheme === 'dark') {
+                body.setAttribute('data-theme', 'dark');
+                themeIcon.textContent = '☀️';
+            } else {
+                body.removeAttribute('data-theme');
+                themeIcon.textContent = '🌙';
+            }
+            
+            // Theme toggle event listener
+            themeToggle.addEventListener('click', function() {
+                const currentTheme = body.getAttribute('data-theme');
+                
+                if (currentTheme === 'dark') {
+                    body.removeAttribute('data-theme');
+                    themeIcon.textContent = '🌙';
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    body.setAttribute('data-theme', 'dark');
+                    themeIcon.textContent = '☀️';
+                    localStorage.setItem('theme', 'dark');
+                }
+            });
+        };
+
+        // Handle document action from dropdown
+        function handleDocumentAction(selectElement, paperId) {
+            const selectedValue = selectElement.value;
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            
+            if (!selectedValue) return;
+            
+            // Check if it's an external link
+            const isExternal = selectedOption.hasAttribute('data-external');
+            
+            if (isExternal) {
+                // Open external links in new tab
+                window.open(selectedValue, '_blank');
+            } else {
+                // Open local files in new tab
+                window.open(selectedValue, '_blank');
+            }
+            
+            // Reset select to default option
+            selectElement.selectedIndex = 0;
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize theme
+            initTheme();
+            
+            // Load metadata and papers
+            loadMetadata();
+
+            // Add smooth scrolling for better UX
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
