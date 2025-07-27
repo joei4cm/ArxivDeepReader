@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kimi-K2 vs. DeepSeek V3: AI巨头的进化分叉</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #F8F9FA;
+            color: #212529;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 450px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .kimi-color { color: #6A4C93; }
+        .kimi-bg { background-color: #6A4C93; }
+        .deepseek-color { color: #1982C4; }
+        .deepseek-bg { background-color: #1982C4; }
+        .highlight-color { color: #FF595E; }
+        .highlight-bg { background-color: #FF595E; }
+        .section-title {
+            color: #343a40;
+            border-bottom: 4px solid #6A4C93;
+            padding-bottom: 8px;
+            display: inline-block;
+        }
+        .flow-box {
+            border: 2px solid;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            font-weight: 500;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .flow-arrow {
+            font-size: 2.5rem;
+            line-height: 1;
+            color: #adb5bd;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+
+        <header class="text-center py-12">
+            <h1 class="text-4xl md:text-5xl font-black kimi-color leading-tight">Kimi-K2 vs. DeepSeek V3</h1>
+            <p class="mt-4 text-xl md:text-2xl text-gray-700">两大开源MoE模型的进化分叉：智能体专家与推理通用者的对决</p>
+        </header>
+
+        <main>
+            <section id="intro" class="mb-16">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold section-title">两种哲学的交锋</h2>
+                    <p class="mt-4 max-w-4xl mx-auto text-lg text-gray-600">Kimi-K2并非DeepSeek V3的简单放大，而是在共享架构基础上的战略性“进化分叉”。月之暗面（Kimi）优先考虑智能体任务的深度特化和极限规模下的训练稳定性；而深度求索（DeepSeek）则聚焦于迭代创新和通用推理能力的提升。</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-center">
+                    <div class="bg-white rounded-2xl shadow-lg p-8">
+                        <h3 class="text-2xl font-bold kimi-color">Kimi-K2: 智能体专家</h3>
+                        <p class="text-7xl font-extrabold my-4 kimi-color">1.04T</p>
+                        <p class="text-lg text-gray-600">万亿参数，为执行复杂的、多步骤的工具使用任务而生。</p>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-lg p-8">
+                        <h3 class="text-2xl font-bold deepseek-color">DeepSeek V3: 推理通用者</h3>
+                        <p class="text-7xl font-extrabold my-4 deepseek-color">671B</p>
+                        <p class="text-lg text-gray-600">强大的通用模型，通过知识蒸馏继承了卓越的推理能力。</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="architecture" class="mb-16">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold section-title">架构蓝图：效率与容量的权衡</h2>
+                    <p class="mt-4 max-w-4xl mx-auto text-lg text-gray-600">为实现各自的目标，两个模型在核心架构参数上做出了截然不同的选择。Kimi-K2牺牲了部分计算深度，换取了更宽广的知识池（更多专家）和更高的长上下文效率。</p>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                    <div class="bg-white rounded-2xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-center mb-4">核心参数对比</h3>
+                        <div class="chart-container h-[450px] md:h-[500px]">
+                            <canvas id="architectureChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-center mb-4">激活参数对比</h3>
+                        <p class="text-center text-gray-600 text-sm mb-4">Kimi-K2通过减少激活参数，在专家数量更多的情况下，实现了与DeepSeek V3相当甚至更低的单次推理计算量。</p>
+                        <div class="chart-container h-[450px] md:h-[500px]">
+                            <canvas id="activatedParamsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="training" class="mb-16">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold section-title">锻造智能：两条迥异的对齐之路</h2>
+                    <p class="mt-4 max-w-4xl mx-auto text-lg text-gray-600">后训练阶段决定了模型的最终能力。Kimi-K2通过模拟海量真实世界交互来“涌现”智能，而DeepSeek V3则通过专家模型的“知识迁移”来获得强大的推理能力。</p>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    <div class="bg-white rounded-2xl shadow-lg p-8">
+                        <h3 class="text-2xl font-bold text-center mb-6 kimi-color">Kimi-K2: 模拟经验之路</h3>
+                        <div class="flex flex-col items-center space-y-4">
+                            <div class="flow-box border-purple-300 text-purple-800 bg-purple-50 w-full">大规模智能体数据合成<br><span class="text-sm font-normal">(模拟真实世界工具交互)</span></div>
+                            <div class="flow-arrow">▼</div>
+                            <div class="flow-box border-purple-300 text-purple-800 bg-purple-50 w-full">自评判强化学习 (RL)<br><span class="text-sm font-normal">(模型扮演自己的批评家)</span></div>
+                            <div class="flow-arrow">▼</div>
+                            <div class="flow-box kimi-bg text-white w-full">涌现出通用的智能体能力</div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-lg p-8">
+                        <h3 class="text-2xl font-bold text-center mb-6 deepseek-color">DeepSeek V3: 知识迁移之路</h3>
+                        <div class="flex flex-col items-center space-y-4">
+                            <div class="flow-box border-blue-300 text-blue-800 bg-blue-50 w-full">DeepSeek-R1 推理引擎<br><span class="text-sm font-normal">(长链式思维专家)</span></div>
+                            <div class="flow-arrow">▼</div>
+                            <div class="flow-box border-blue-300 text-blue-800 bg-blue-50 w-full">知识蒸馏<br><span class="text-sm font-normal">(生成高质量推理数据)</span></div>
+                            <div class="flow-arrow">▼</div>
+                            <div class="flow-box deepseek-bg text-white w-full">获得显式的推理能力</div>
+                        </div>
+                    </div>
+                </div>
+                 <div class="mt-12 bg-white rounded-2xl shadow-lg p-8 text-center">
+                    <h3 class="text-2xl font-bold highlight-color">训练稳定性的突破：MuonClip</h3>
+                    <p class="text-7xl font-extrabold my-4 highlight-color">15.5T</p>
+                    <p class="text-lg text-gray-600">Kimi-K2使用创新的 <span class="font-bold">MuonClip</span> 优化器，在 <span class="font-bold">15.5万亿</span> Tokens的预训练中实现了 <span class="font-bold highlight-color">零损失尖峰</span>，这是万亿级模型稳定训练的关键。</p>
+                </div>
+            </section>
+
+            <section id="performance" class="mb-16">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold section-title">竞技场：基准性能对决</h2>
+                    <p class="mt-4 max-w-4xl mx-auto text-lg text-gray-600">基准测试结果直接验证了两种不同后训练策略的成效。Kimi-K2在其核心目标——智能体编程任务上，展现出压倒性优势。</p>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white rounded-2xl shadow-lg p-6 lg:col-span-2">
+                        <h3 class="text-xl font-bold text-center">智能体编程: SWE-bench Verified</h3>
+                        <p class="text-center text-gray-600 text-sm mb-4">在该项测试中，模型需要自主解决真实的GitHub问题。Kimi-K2的得分远超DeepSeek V3，甚至优于GPT-4.1。</p>
+                        <div class="chart-container h-80 md:h-96">
+                            <canvas id="sweBenchChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-center">通用编程: LiveCodeBench v6</h3>
+                        <p class="text-center text-gray-600 text-sm mb-4">在通用编程任务上，Kimi-K2同样保持领先，但优势差距缩小。</p>
+                        <div class="chart-container">
+                            <canvas id="liveCodeBenchChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-center">STEM推理: GPQA</h3>
+                        <p class="text-center text-gray-600 text-sm mb-4">在需要专业知识的推理任务上，两款模型均表现出色，Kimi-K2略占优势。</p>
+                        <div class="chart-container">
+                            <canvas id="gpqaChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="economics" class="mb-16">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold section-title">AI的经济学：成本与速度</h2>
+                    <p class="mt-4 max-w-4xl mx-auto text-lg text-gray-600">对于开发者而言，模型的性价比是关键考量。目前，DeepSeek V3的公开API提供了更具吸引力的价格和更快的速度，但Kimi-K2在优化自托管下的成本潜力巨大。</p>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white rounded-2xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-center">API定价对比 (美元/百万Tokens)</h3>
+                        <p class="text-center text-gray-600 text-sm mb-4">Kimi-K2的定价显著高于DeepSeek V3。</p>
+                        <div class="chart-container">
+                            <canvas id="pricingChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-center">API输出速度对比 (Tokens/秒)</h3>
+                        <p class="text-center text-gray-600 text-sm mb-4">DeepSeek V3在公开API上的响应速度更快。</p>
+                        <div class="chart-container">
+                            <canvas id="speedChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <footer class="text-center py-8 mt-8 border-t border-gray-300">
+            <p class="text-gray-600">&copy; 2025 AI模型分析报告。信息图内容基于公开的技术报告和社区分析。</p>
+            <p class="text-xs text-gray-400 mt-2">免责声明: 本信息图仅供参考，所有数据均来自引用的源报告，可能随模型更新而变化。</p>
+        </footer>
+    </div>
+
+    <script>
+        const kimiColor = '#6A4C93';
+        const deepseekColor = '#1982C4';
+        const highlightColor = '#FF595E';
+        const kimiColorTransparent = 'rgba(106, 76, 147, 0.6)';
+        const deepseekColorTransparent = 'rgba(25, 130, 196, 0.6)';
+
+        function wrapLabel(str, maxLen) {
+            if (str.length <= maxLen) return str;
+            const words = str.split(' ');
+            const lines = [];
+            let currentLine = '';
+            for (const word of words) {
+                if ((currentLine + word).length > maxLen && currentLine.length > 0) {
+                    lines.push(currentLine.trim());
+                    currentLine = '';
+                }
+                currentLine += word + ' ';
+            }
+            lines.push(currentLine.trim());
+            return lines;
+        }
+
+        const defaultChartOptions = {
+            maintainAspectRatio: false,
+            responsive: true,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            const item = tooltipItems[0];
+                            let label = item.chart.data.labels[item.dataIndex];
+                            return Array.isArray(label) ? label.join(' ') : label;
+                        }
+                    }
+                },
+                legend: {
+                    labels: {
+                        color: '#343a40',
+                        font: { size: 14 }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    ticks: { color: '#495057', font: { size: 12 } },
+                    grid: { color: '#e9ecef' }
+                },
+                x: {
+                    ticks: { color: '#495057', font: { size: 12 } },
+                    grid: { display: false }
+                }
+            }
+        };
+
+        new Chart(document.getElementById('architectureChart'), {
+            type: 'bar',
+            data: {
+                labels: ['总参数量 (B)', '专家数量', '注意力头数量', '稠密FFN层数'],
+                datasets: [
+                    {
+                        label: 'Kimi-K2',
+                        data: [1040, 384, 64, 1],
+                        backgroundColor: kimiColorTransparent,
+                        borderColor: kimiColor,
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'DeepSeek V3',
+                        data: [671, 256, 128, 3],
+                        backgroundColor: deepseekColorTransparent,
+                        borderColor: deepseekColor,
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: { ...defaultChartOptions }
+        });
+
+        new Chart(document.getElementById('activatedParamsChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Kimi-K2 (32B)', 'DeepSeek V3 (37B)'],
+                datasets: [{
+                    label: '激活参数量 (B)',
+                    data: [32, 37],
+                    backgroundColor: [kimiColor, deepseekColor],
+                    borderColor: '#F8F9FA',
+                    borderWidth: 4,
+                }]
+            },
+            options: { ...defaultChartOptions, cutout: '60%' }
+        });
+        
+        new Chart(document.getElementById('sweBenchChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Kimi-K2', 'DeepSeek V3', 'GPT-4.1', 'Claude Sonnet 4'],
+                datasets: [{
+                    label: 'Accuracy (%)',
+                    data: [65.8, 38.8, 54.6, 72.7],
+                    backgroundColor: [kimiColor, deepseekColor, '#6c757d', '#fd7e14'],
+                }]
+            },
+            options: {
+                ...defaultChartOptions,
+                indexAxis: 'y',
+                plugins: { ...defaultChartOptions.plugins, legend: { display: false } }
+            }
+        });
+
+        new Chart(document.getElementById('liveCodeBenchChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Kimi-K2', 'DeepSeek V3'],
+                datasets: [{
+                    label: 'Pass@1 (%)',
+                    data: [53.7, 46.9],
+                    backgroundColor: [kimiColorTransparent, deepseekColorTransparent],
+                    borderColor: [kimiColor, deepseekColor],
+                    borderWidth: 2
+                }]
+            },
+            options: { ...defaultChartOptions, plugins: { ...defaultChartOptions.plugins, legend: { display: false } } }
+        });
+
+        new Chart(document.getElementById('gpqaChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Kimi-K2 (Diamond)', 'DeepSeek V3 (Base)'],
+                datasets: [{
+                    label: 'Accuracy (%)',
+                    data: [75.1, 68.4],
+                    backgroundColor: [kimiColorTransparent, deepseekColorTransparent],
+                    borderColor: [kimiColor, deepseekColor],
+                    borderWidth: 2
+                }]
+            },
+            options: { ...defaultChartOptions, plugins: { ...defaultChartOptions.plugins, legend: { display: false } } }
+        });
+
+        new Chart(document.getElementById('pricingChart'), {
+            type: 'bar',
+            data: {
+                labels: ['输入', '输出'],
+                datasets: [
+                    {
+                        label: 'Kimi-K2',
+                        data: [0.60, 2.50],
+                        backgroundColor: kimiColorTransparent,
+                        borderColor: kimiColor,
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'DeepSeek V3',
+                        data: [0.27, 1.10],
+                        backgroundColor: deepseekColorTransparent,
+                        borderColor: deepseekColor,
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: { ...defaultChartOptions }
+        });
+
+        new Chart(document.getElementById('speedChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Kimi-K2', 'DeepSeek V3'],
+                datasets: [{
+                    label: '中位输出速度 (Tokens/秒)',
+                    data: [20, 27],
+                    backgroundColor: [kimiColor, deepseekColor]
+                }]
+            },
+            options: { ...defaultChartOptions, plugins: { ...defaultChartOptions.plugins, legend: { display: false } } }
+        });
+    </script>
+</body>
+</html>

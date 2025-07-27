@@ -195,19 +195,19 @@
     "2403.03206": {
       "title": "Stable Diffusion 3 架构解析",
       "description": "一份详细介绍 Stable Diffusion 3 背后技术：多模态扩散变换器 (MMDiT) 的信息图。",
-      "category": "图像生成",
-      "categoryColor": "pink",
+      "category": "推理加速",
+      "categoryColor": "emerald",
       "tags": [
-        "扩散模型",
-        "多模态",
-        "图像生成"
+        "并行计算",
+        "推测解码",
+        "效率优化"
       ],
       "tagColors": [
-        "pink",
-        "indigo",
-        "cyan"
+        "blue",
+        "red",
+        "yellow"
       ],
-      "gradient": "from-pink-600 to-rose-600",
+      "gradient": "from-emerald-600 to-teal-600",
       "folder": "2403.03206v1",
       "files": [
         {
@@ -275,36 +275,29 @@
       ]
     },
     "2106.09685": {
-      "title": "AI之眼的演化 - 可变形注意力",
-      "description": "探索AI如何学会停止关注一切，开始专注于重要的事物，甚至开始做梦。",
-      "category": "计算机视觉",
-      "categoryColor": "green",
+      "title": "信息图：LoRA革命 - AI定制的全新时代",
+      "description": "在LoRA出现前，想让一个大模型学会特定任务（微调），就像要重修一座大厦——成本高昂，普通人难以承受。",
+      "category": "模型训练",
+      "categoryColor": "purple",
       "tags": [
-        "注意力机制",
-        "计算机视觉",
-        "可变形卷积"
+        "训练优化",
+        "参数高效",
+        "微调技术"
       ],
       "tagColors": [
-        "green",
         "blue",
-        "teal"
+        "green",
+        "purple"
       ],
-      "gradient": "from-green-600 to-teal-600",
+      "gradient": "from-purple-600 to-indigo-600",
       "folder": "2106.09685v2",
       "files": [
         {
-          "name": "2106.09685v2_cn.html",
+          "name": "2106.09685v2.html",
           "type": "analysis",
           "priority": 1,
           "icon": "📖",
           "label": "深度解析"
-        },
-        {
-          "name": "2106.09685v2_en.html",
-          "type": "analysis",
-          "priority": 1,
-          "icon": "📖",
-          "label": "深度解析(EN)"
         },
         {
           "name": "2106.09685v2.pdf",
@@ -314,19 +307,68 @@
           "label": "原文PDF"
         },
         {
-          "name": "论文分析：Deformable Attention Transformer_.pdf",
+          "name": "LoRA论文技术分析报告_.pdf",
+          "type": "report",
+          "priority": 2,
+          "icon": "📊",
+          "label": "研究报告"
+        }
+      ]
+    }
+  },
+    "Kimi-K2": {
+      "title": "Kimi-K2 vs. DeepSeek V3: AI巨头的进化分叉",
+      "description": "两大开源MoE模型的进化分叉：智能体专家与推理通用者的对决。深度分析Kimi-K2与DeepSeek V3在架构设计、训练策略和性能表现上的差异。",
+      "category": "模型对比",
+      "categoryColor": "indigo",
+      "tags": [
+        "MoE架构",
+        "模型对比",
+        "智能体"
+      ],
+      "tagColors": [
+        "purple",
+        "blue",
+        "green"
+      ],
+      "gradient": "from-indigo-600 to-purple-600",
+      "folder": "Kimi-K2",
+      "files": [
+        {
+          "name": "Kimi-K2_Infographic.html",
+          "type": "analysis",
+          "priority": 1,
+          "icon": "📖",
+          "label": "深度解析"
+        },
+        {
+          "name": "kimi-k2_tech_report.pdf",
+          "type": "original",
+          "priority": 2,
+          "icon": "📄",
+          "label": "技术报告"
+        },
+        {
+          "name": "Kimi-K2 MoE Design Analysis_.pdf",
           "type": "analysis_pdf",
           "priority": 2,
           "icon": "📊",
-          "label": "分析报告"
+          "label": "设计分析"
+        },
+        {
+          "name": "Kimi-K2 与 DeepSeek V3 对比_.pdf",
+          "type": "comparison",
+          "priority": 3,
+          "icon": "⚖️",
+          "label": "对比分析"
         }
       ]
     }
   },
   "statistics": {
-    "totalPapers": 7,
-    "totalDocuments": 26
+    "totalPapers": 8,
+    "totalDocuments": 29
   },
-  "lastUpdated": "2025-07-27T08:43:29.980253Z",
+  "lastUpdated": "2025-07-27T17:00:29.445713Z",
   "version": "1.0.0"
 }
