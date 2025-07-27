@@ -7,8 +7,10 @@
 - 🔍 **自动检测**: 智能扫描AI目录中的论文文件夹
 - 📖 **深度解析**: 支持HTML格式的论文深度分析页面
 - 📄 **文档管理**: 自动分类和展示PDF、报告等附件
+- 🔗 **智能链接**: 自动提取ArXiv URL和其他学术链接
 - 🎨 **美观界面**: 使用Tailwind CSS构建的现代化UI
 - 🔄 **自动更新**: 通过脚本自动更新论文元数据
+- 🌓 **主题切换**: 支持明暗主题切换
 
 ## 目录结构
 
@@ -61,6 +63,11 @@ python update_metadata.py
 ### 3. 查看结果
 在浏览器中打开 `index.html` 查看更新后的论文列表。
 
+每个论文卡片包含：
+- **阅读深度解析**: 打开本地HTML深度分析页面
+- **查看原文**: 跳转到ArXiv或其他学术网站的原文链接
+- **文档列表**: 显示PDF和其他相关文档
+
 ## 元数据自动提取
 
 更新脚本会自动从HTML文件中提取以下信息：
@@ -70,6 +77,10 @@ python update_metadata.py
 - **分类**: 基于内容关键词智能分类
 - **标签**: 根据论文主题自动生成
 - **样式**: 自动分配颜色主题和渐变
+- **URL链接**: 自动提取ArXiv URL和其他学术链接
+  - 从文件夹名称自动生成ArXiv链接
+  - 从HTML内容中提取GitHub、Hugging Face等链接
+  - 支持meta标签中的URL信息
 
 ### 支持的分类
 
@@ -118,6 +129,8 @@ def categorize_content(self, content_text: str, title: str) -> tuple:
 2. **依赖安装失败**: 手动运行 `pip install beautifulsoup4 lxml`
 3. **HTML解析错误**: 检查HTML文件格式是否正确
 4. **元数据未更新**: 确保 `index.html` 中存在 `paperMetadata` 对象
+5. **ArXiv URL未生成**: 确保文件夹名称包含有效的ArXiv论文ID
+6. **查看原文按钮无效**: 检查meta.json中是否包含正确的URL字段
 
 ### 调试模式
 
@@ -130,8 +143,13 @@ def categorize_content(self, content_text: str, title: str) -> tuple:
 
 - **前端**: HTML5, Tailwind CSS, JavaScript
 - **后端脚本**: Python 3.7+
-- **依赖库**: BeautifulSoup4, lxml
+- **依赖库**: BeautifulSoup4, lxml, re (正则表达式)
 - **样式框架**: Tailwind CSS CDN
+- **功能特性**: 
+  - 响应式设计，支持移动端
+  - 明暗主题切换
+  - 智能URL提取和链接生成
+  - 自动文件分类和标签生成
 
 ## 许可证
 
