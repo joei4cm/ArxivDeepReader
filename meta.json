@@ -322,60 +322,53 @@
       ],
       "arxivUrl": "https://arxiv.org/abs/2106.09685"
     },
-    "Kimi-K2": {
-      "title": "Kimi-K2 技术报告：信息图表",
-      "description": "Kimi-K2 是月之暗面推出的新一代大型语言模型，采用创新的混合专家（MoE）架构，在保持高性能的同时显著提升了推理效率。",
-      "category": "模型架构",
-      "categoryColor": "indigo",
+    "2412.19437": {
+      "title": "DeepSeek-V3: AI 效率革命信息图",
+      "description": "DeepSeek-V3 不仅仅是一个新模型，它代表了一种范式转移——证明了算法和工程的智慧可以挑战“算力为王”的哲学，并重塑 AI 开发的经济格局。",
+      "category": "KV缓存优化",
+      "categoryColor": "blue",
       "tags": [
-        "MoE架构",
-        "推理优化",
-        "技术报告"
+        "架构创新",
+        "内存优化",
+        "性能提升"
       ],
       "tagColors": [
-        "indigo",
-        "orange",
-        "gray"
+        "purple",
+        "green",
+        "orange"
       ],
-      "gradient": "from-indigo-600 to-purple-600",
-      "folder": "Kimi-K2",
+      "gradient": "from-blue-600 to-purple-600",
+      "folder": "2412.19437v2",
       "files": [
         {
-          "name": "Kimi-K2_Infographic.html",
+          "name": "2412.19437v2.html",
           "type": "analysis",
           "priority": 1,
           "icon": "📖",
           "label": "深度解析"
         },
         {
-          "name": "kimi-k2_tech_report.pdf",
+          "name": "2412.19437v2.pdf",
           "type": "original",
           "priority": 2,
           "icon": "📄",
-          "label": "技术报告"
+          "label": "原文PDF"
         },
         {
-          "name": "Kimi-K2 MoE Design Analysis_.pdf",
+          "name": "论文深度分析研究_.pdf",
           "type": "analysis_pdf",
           "priority": 2,
           "icon": "📊",
-          "label": "架构分析"
-        },
-        {
-          "name": "Kimi-K2 与 DeepSeek V3 对比_.pdf",
-          "type": "comparison",
-          "priority": 3,
-          "icon": "⚖️",
-          "label": "对比分析"
+          "label": "分析报告"
         }
       ],
-      "url": "https://github.com/MoonshotAI/Kimi-K2/blob/main/tech_report.pdf"
+      "arxivUrl": "https://arxiv.org/abs/2412.19437"
     }
   },
   "statistics": {
     "totalPapers": 8,
-    "totalDocuments": 29
+    "totalDocuments": 28
   },
-  "lastUpdated": "2025-07-27T21:35:09.546796Z",
+  "lastUpdated": "2025-07-28T00:49:35.374926Z",
   "version": "1.0.0"
 }
