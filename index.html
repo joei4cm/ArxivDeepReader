@@ -385,6 +385,19 @@
                             📖 阅读深度解析
                         </a>` : ''}
                         
+                        ${data.arxivUrl ? `
+                        <a href="${data.arxivUrl}" target="_blank"
+                           class="block w-full bg-gradient-to-r from-red-500 to-orange-500 text-white text-center py-3 rounded-lg font-semibold hover:opacity-90 transition-all duration-200">
+                            📄 查看原文 (ArXiv)
+                        </a>` : data.url ? `
+                        <a href="${data.url}" target="_blank"
+                           class="block w-full bg-gradient-to-r from-red-500 to-orange-500 text-white text-center py-3 rounded-lg font-semibold hover:opacity-90 transition-all duration-200">
+                            📄 查看原文
+                        </a>` : `
+                        <div class="block w-full bg-gray-300 text-gray-600 text-center py-3 rounded-lg font-semibold cursor-not-allowed">
+                            📄 原文链接待补充
+                        </div>`}
+                        
                         ${filesHtml ? `<div class="flex flex-wrap">${filesHtml}</div>` : ''}
                     </div>
                 </div>`;

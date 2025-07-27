@@ -28,6 +28,44 @@ class MetadataExtractor:
         match = re.search(r'(\d{4}\.\d{5})', folder_name)
         return match.group(1) if match else None
     
+    def extract_url(self, html_path: Path, soup: BeautifulSoup) -> Optional[str]:
+        """Extract URL from paper ID or HTML content"""
+        # First, try to extract ArXiv URL from folder/file name
+        folder_name = html_path.parent.name
+        paper_id = self.extract_paper_id(folder_name)
+        
+        if paper_id:
+            # Generate ArXiv URL from paper ID
+            return f"https://arxiv.org/abs/{paper_id}"
+        
+        # If no paper ID, try to find URLs in HTML content
+        # Look for ArXiv links
+        arxiv_links = soup.find_all('a', href=re.compile(r'arxiv\.org'))
+        if arxiv_links:
+            return arxiv_links[0]['href']
+        
+        # Look for other academic paper URLs
+        academic_patterns = [
+            r'https?://arxiv\.org/abs/[\d\.]+',
+            r'https?://.*\.pdf',
+            r'https?://github\.com/[^/]+/[^/]+',
+            r'https?://huggingface\.co/[^/]+/[^/]+'
+        ]
+        
+        content_text = soup.get_text()
+        for pattern in academic_patterns:
+            match = re.search(pattern, content_text)
+            if match:
+                return match.group(0)
+        
+        # Look for meta tags with URLs
+        meta_url = soup.find('meta', attrs={'property': 'og:url'})
+        if meta_url and meta_url.get('content'):
+            return meta_url['content']
+        
+        # Return placeholder if no URL found
+        return None
+    
     def extract_html_metadata(self, html_path: Path) -> Dict:
         """Extract metadata from HTML file"""
         try:
@@ -60,11 +98,14 @@ class MetadataExtractor:
                         description = text[:200] + '...' if len(text) > 200 else text
                         break
             
+            # Extract URL - try multiple methods
+            url = self.extract_url(html_path, soup)
+            
             # Determine category and tags based on content
             content_text = soup.get_text().lower()
             category, category_color, tags, tag_colors, gradient = self.categorize_content(content_text, title)
             
-            return {
+            metadata = {
                 'title': title,
                 'description': description,
                 'category': category,
@@ -73,6 +114,15 @@ class MetadataExtractor:
                 'tagColors': tag_colors,
                 'gradient': gradient
             }
+            
+            # Add URL if found
+            if url:
+                if 'arxiv.org' in url:
+                    metadata['arxivUrl'] = url
+                else:
+                    metadata['url'] = url
+            
+            return metadata
             
         except Exception as e:
             print(f"Error extracting metadata from {html_path}: {e}")
@@ -120,7 +170,8 @@ class MetadataExtractor:
             'categoryColor': 'gray',
             'tags': ['机器学习', 'AI技术'],
             'tagColors': ['blue', 'green'],
-            'gradient': 'from-gray-600 to-gray-700'
+            'gradient': 'from-gray-600 to-gray-700',
+            'url': None  # Placeholder for URL
         }
     
     def scan_papers(self) -> Dict:
@@ -251,7 +302,7 @@ class MetadataExtractor:
                 # Sort files by priority
                 files_info.sort(key=lambda x: x["priority"])
                 
-                meta_data["papers"][paper_id] = {
+                paper_entry = {
                     "title": data["title"],
                     "description": data["description"],
                     "category": data["category"],
@@ -262,6 +313,14 @@ class MetadataExtractor:
                     "folder": folder_name,
                     "files": files_info
                 }
+                
+                # Add URL fields if they exist
+                if "arxivUrl" in data and data["arxivUrl"]:
+                    paper_entry["arxivUrl"] = data["arxivUrl"]
+                elif "url" in data and data["url"]:
+                    paper_entry["url"] = data["url"]
+                
+                meta_data["papers"][paper_id] = paper_entry
             
             # Update statistics
             meta_data["statistics"] = {
